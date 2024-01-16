@@ -1,2 +1,2 @@
-# ramji-eds240-hw4
+# EDS 240, Homework 4
 Materials for Homework 4 of EDS 240: Data Visualization &amp; Communication
