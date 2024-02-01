@@ -1,0 +1,59 @@
+---
+author: "Anna Ramji"
+date: 2024-01-31
+title: "Homework 2 Part 2"
+---
+
+**(Part 2a) This week, you’ll focus on importing / wrangling / and beginning the exploratory data visualization phase, using the data you found as part of [HW #1, Part II](https://samanthacsik.github.io/EDS-240-data-viz/assignments/HW1.html#part-ii-find-a-data-sets-that-interests-you). Complete the following:**
+
+-   Create an file named, `HW2-exploration.qmd` within your `lastName-eds240-HW4` repo and add appropriate YAML fields
+
+-   Load necessary packages and read in your data
+
+```{r library, warning=FALSE, message=FALSE}
+# load necessary packages
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                load packages                             ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+library("tidyverse") # for tidy everything! (data cleaning, wrangling)
+library("here") # for reproducible file paths
+library("janitor") # used to clean column names
+library("naniar") # tools for exploring & handing missing data
+library("ggridges") # {ggplot2} extension for creating ridgeline plots
+library("ggbeeswarm") # {ggplot2} extension for creating categorical scatter (violin point) plots
+library("scales") # provides the internal scaling infrastructure used by ggplot2, and gives you tools to override the default breaks, labels, transformations and palettes (installed automatically with {ggplot2} or {tidyverse})
+library("calecopal") # used for custom plot theme
+library("ggtext") # used for customizing plot text
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                import data                               ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+agrifood_emissions <- read_csv(here("data", "Agrofood_co2_emission.csv"))
+
+econ_freedom <- read_csv(here("data", "economic_freedom_quartile_1990_2020.csv"),
+                         skip = 4) # the first few columns were not part of my intended dataset (cleaning while reading in)
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          data cleaning & wrangling                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+```
+
+
+-   Clean & wrangle your data
+
+-   Create at least **three** (but of course feel free to create more!) exploratory visualizations (similar to plot #1 and #2 in Part I of this assignment).
+
+-   **IMPORTANT:** If you have a downloaded data file saved to your repo (e.g. you’re not reading in your data directly from online, from a server, etc.) be sure to add your data folder / file to your `.gitignore`, particularly if this file is large.
+
+**(Part 2b) After completing the above steps, answer the following questions:**
+
+-   **1.** What have you learned about your data? Have any potentially interesting patterns emerged? **(5-8 sentences)**
+
+-   **2.** In HW #1, you outlined some questions that you wanted to answer using these data. Have you made any strides towards answering those questions? If yes, how so? If no, what next steps do you need to take (e.g. I need to create X plot type, I still need to track down Y data, I need to restructure existing data so that you can visualize it in Z ways, etc.)? **(8-12 sentences)**
+
+-   **3.** What challenges do you foresee encountering with your data? These can be data wrangling and / or visualization challenges. **(4-6 sentences)**
