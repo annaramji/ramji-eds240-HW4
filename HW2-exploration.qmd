@@ -39,14 +39,63 @@ econ_freedom <- read_csv(here("data", "economic_freedom_quartile_1990_2020.csv")
 ##                          data cleaning & wrangling                       ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# Agri-food CO2 emissions ----
+
+# the column names are not tidy, so I'll start out by renaming them to lower_snake_case()
+ag_clean <- agrifood_emissions |> 
+  janitor::clean_names() |> 
+# the column names are quite long, though informative, so I'll first select the columns/variables I'm most interested in...
+  select(area, year, total_emission, average_temperature_c, urban_population, rural_population, rice_cultivation, crop_residues, pesticides_manufacturing, food_transport, agrifood_systems_waste_disposal, forestland, food_household_consumption, food_retail, food_packaging, savanna_fires, forest_fires, net_forest_conversion, drained_organic_soils_co2) |> 
+
+# and then rename them to more easily referable titles 
+  rename(country = area, 
+         avg_temp_c = average_temperature_c,
+         urban_pop = urban_population,
+         rural_pop = rural_population,
+         pesticide_manuf = pesticides_manufacturing,
+         agfood_waste_disposal = agrifood_systems_waste_disposal,
+         f_hh_consumption = food_household_consumption,
+         net_forest_conv = net_forest_conversion,
+         food_pack = food_packaging
+         )  |> 
+  
+  # because I'm interested in plotting countries and years, I'll coerce the country data types to factor and year to a date
+  mutate(country = as.factor(country),
+         year = as.factor(year))
+
+
+
+
+# Economic Freedom ----
+
+# the economic freedom dataset has an extra empty column at the beginning, so I'll start by dropping that column and renaming the columns to lower_snake_case()
+econ_clean <- econ_freedom |> 
+  select(-...1) |> 
+  janitor::clean_names() |> 
+
+# there are lots of interesting columns in this dataset, but for now I'm only interested in a few for my data visualizations. I'll select and reorder them here:
+  select(year, iso_code, countries, economic_freedom_summary_index, rank, quartile, tariffs)  |> 
+  
+  # next, I'll coerce the datatypes of year and countries to be factors, while updating the name of countries to country to match our agrifood emissions dataset and drop the old column
+  mutate(year = as.factor(year),
+         country = as.factor(countries)) |> 
+  select(-countries)
+
+
+# the country columns differ at many points... I'll need to clean these up before I can join the dataframes
+unique(ag_clean$country)
+unique(econ_clean$country)
+```
+
+
+-   Create at least **three** (but of course feel free to create more!) exploratory visualizations (similar to plot #1 and #2 in Part I of this assignment).
+
+```{r exploratory-viz}
+
 
 
 ```
 
-
--   Clean & wrangle your data
-
--   Create at least **three** (but of course feel free to create more!) exploratory visualizations (similar to plot #1 and #2 in Part I of this assignment).
 
 -   **IMPORTANT:** If you have a downloaded data file saved to your repo (e.g. you’re not reading in your data directly from online, from a server, etc.) be sure to add your data folder / file to your `.gitignore`, particularly if this file is large.
 
