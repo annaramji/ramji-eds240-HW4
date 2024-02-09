@@ -1,0 +1,133 @@
+---
+author: "Anna Ramji"
+---
+
+## Adding updates to data viz from HW2 assignment 
+
+
+
+```{r}
+# top emitters per capita
+top_per_cap <- ag_econ_join |> 
+  group_by(year, country) |> 
+  arrange(desc(emissions_per_capita)) |> 
+  filter(country %in% c("Belize", "Botswana", "Guyana", "Trinidad and Tobago"))
+```
+
+
+```{r}
+# plot 1: USA emissions over time  ----
+
+usa_emissions_plot <- ggplot(data = usa_food,
+                             aes(x = year,
+                                 y = total_emissions)) +
+  # geom_point() +
+  geom_line() +
+  # rescaling y-axis to be more legible (than 2e+06, for example)
+  scale_y_continuous(label = label_number(accuracy = 1, 
+                                          scale = 0.000001, # millions
+                                          suffix = "M")) +
+  # updating labels, titles, theme
+  labs(x = "Year", 
+       y = "CO2 emissions (kilotons)",
+       title = "Total agri-food CO2 emissions in the USA (1990-2020)",
+       caption = "1 kiloton (kt) = 1000 kg") +
+  theme_bw()
+
+usa_emissions_plot
+
+
+# plot 2.1: agrifood emissions over time ----
+
+emissions_plot1 <- ggplot(data = top_emitters,
+       aes(x = year,
+           y = total_emissions)) +
+#  geom_point(aes(color = country)) +
+  geom_line(aes(color = country)) +
+  # rescaling y-axis to be more legible
+  scale_y_continuous(label = label_number(accuracy = 1,
+                                          scale = 0.000001, # millions
+                                          suffix = "M")) +
+  
+  # updating axes labels, legend and plot title, caption
+  labs(y = "CO2 emissions (kilotons)",
+       x = "Year",
+       color = "Country",
+       title = "Total agri-food CO2 emissions (1990-2020)",
+       caption = "1 kiloton (kt) = 1000 kg") +
+  theme_bw()
+
+
+emissions_plot1
+```
+
+
+```{r}
+# note: add mean emissions per capita line
+
+# run regression or series of regressions -- show statistical strength of ___
+# break down trend lines -- facet wrap by country, 
+# could also combine countries together, have single trend line, plot 1 trend line
+# get rid of geom_line, keep scatter plot, one line, in general these countries combined have decreased 
+# if there are reasons why they weren't measured in some years, make a note of that -- interactive, hover action w information
+# note about why there's a spike at 2011
+# change point shape
+# point size -- population size -- bigger points for bigger pops, percentage of pop in urban areas, etc. 
+# include slope, p-value, R-squared value
+# 
+
+# plot 2.2: agrifood emissions per capita over time ----
+top_per_cap_plot <- ggplot(data = top_per_cap,
+       aes(x = year,
+           y = emissions_per_capita,
+           color = country,
+           shape = country)) +
+  # point and line plots, colored by country
+  geom_point() +
+  geom_line() +
+  # scale_y_continuous(label = label_number(accuracy = 1,
+  #                                         scale = 0.000001,
+  #                                         suffix = "M")) +
+  
+  # updating axes labels, legend and plot title, caption
+  labs(y = "Emissions per capita (CO2 kt)",
+       x = "Year",
+       color = "Country",
+       shape = "Country",
+       title = "Total agri-food CO2 emissions per capita (1990-2020)",
+       subtitle = "Top 4 emitters per capita as of 2020",
+       caption = "1 kiloton (kt) = 1000 kg") +
+  theme_bw()
+
+
+top_per_cap_plot
+```
+
+
+```{r}
+# economic freedom quartile x agri-food CO2 emissions ----
+
+
+econ_emissions_plot1 <- ggplot(data = top_emitters, aes(x = year,
+                                     y = emissions_per_capita)) +
+  # grouping by country (doesn't do much unless you have more countries, but I'm trying to avoid spaghetti plots), coloring by quartile
+  geom_line(aes(group = country, color = quartile),
+            linewidth = 0.9) +
+  # labelling each country 
+  geom_label_repel(aes(label = label), # defined when I made my top_emitters subset earlier
+                  nudge_x = 7,
+                  na.rm = TRUE) + 
+  scale_color_viridis_d() + 
+#   scale_color_paletteer_d(palette = "ggprism::viridis", direction = -1) + 
+#  scale_color_manual(values = calecopal::cal_palette("superbloom3")) +
+  # updating axes labels, title, legend title
+  labs(x = "Year",
+       y = "Emissions per capita (CO2 kt)",
+       color = "Quartile",
+       title = "Emissions per capita over time, colored by Economic Freedom Quartile") + 
+  theme_bw() 
+
+# view plot
+econ_emissions_plot1
+```
+

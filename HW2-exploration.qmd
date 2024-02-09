@@ -2,6 +2,9 @@
 author: "Anna Ramji"
 date: 2024-01-31
 title: "Homework 2 Part 2"
+format:
+  html:
+    embed-resources: true
 ---
 
 **(Part 2a) This week, you’ll focus on importing / wrangling / and beginning the exploratory data visualization phase, using the data you found as part of [HW #1, Part II](https://samanthacsik.github.io/EDS-240-data-viz/assignments/HW1.html#part-ii-find-a-data-sets-that-interests-you). Complete the following:**
@@ -321,6 +324,18 @@ emissions_plot1 <- ggplot(data = top_emitters,
 
 emissions_plot1
 
+# note: add mean emissions per capita line
+
+# run regression or series of regressions -- show statistical strength of ___
+# break down trend lines -- facet wrap by country, 
+# could also combine countries together, have single trend line, plot 1 trend line
+# get rid of geom_line, keep scatter plot, one line, in general these countries combined have decreased 
+# if there are reasons why they weren't measured in some years, make a note of that -- interactive, hover action w information
+# note about why there's a spike at 2011
+# change point shape
+# point size -- population size -- bigger points for bigger pops, percentage of pop in urban areas, etc. 
+# include slope, p-value, R-squared value
+# 
 
 # plot 2.2: agrifood emissions per capita over time ----
 top_per_cap_plot <- ggplot(data = top_per_cap,
@@ -334,10 +349,11 @@ top_per_cap_plot <- ggplot(data = top_per_cap,
   #                                         suffix = "M")) +
   
   # updating axes labels, legend and plot title, caption
-  labs(y = "CO2 emissions (kilotons)",
+  labs(y = "Emissions per capita (CO2 kt)",
        x = "Year",
        color = "Country",
-       title = "Total agri-food CO2 emissions (1990-2020)",
+       title = "Total agri-food CO2 emissions per capita (1990-2020)",
+       # subtitle: "Top 5 emitters per capita" # I added this in post-discussion iterations of this visualization 
        caption = "1 kiloton (kt) = 1000 kg") +
   theme_bw()
 
