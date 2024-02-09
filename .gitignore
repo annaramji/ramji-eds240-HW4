@@ -50,3 +50,7 @@ rsconnect/
 
 
 data
+
+.DS_Store
+
+*.html
