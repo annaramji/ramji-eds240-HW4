@@ -1,5 +1,5 @@
 ---
-author: "Anna Ramji"
+author: "Anna Ramji (she/her)"
 date: 2024-01-31
 title: "Homework 2 Part 2"
 format:
