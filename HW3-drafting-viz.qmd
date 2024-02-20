@@ -1,0 +1,191 @@
+---
+author: "Anna Ramji (she/her)"
+date: 2024-01-31
+title: "Homework 2 Part 2"
+format:
+  html:
+    embed-resources: true
+---
+
+For HW #3, you must complete the following:
+
+**Which option do you plan to pursue?** - I plan to pursue option 2 (infographic with 3 subquestions)
+
+**Restate your question(s). Has this changed at all since HW #1? If yes, how so?**
+
+Overarching Q: How have agrifood CO2 emissions changed over time in China and the United States (bigger picture trend)
+
+1.  How have total agrifood CO2 emissions changed over time in China vs. US
+
+2.  How have agrifood CO2 emissions per capita changed over time in China vs. US
+
+3.  What are the key contributors to US agrifood CO2 emissions (sankey diagram) in 2020 (vs 1990 ? would that count as an additional visualization?)
+
+Yes, I have decided to drop the economic freedom quartile dataset due to time and assignment constraints. I think if I were able to make 10 visualizations or have another quarter to work with the data, it would be intersting to investigate the relationship between economic freedom quartile and prevalence of specific contributors to agrifood CO2 emissions, but I unfortunately don't have the luxury of time and lots of visualization space on my side. For this reason, I am also no longer planning on incorporating average temperature (ºC) in my visualization. Ideally, I'd be able to look at how changing Econ Freedom Q + change in temp over time impacts specific contributors of emissions (savannah fires, for example) particularly in countries that went from lower to higher quartiles, or look at the biggest contributors to agrifood CO2 emissions by Econ Quartile. This last part could still be interesting and somewhat feasible, but might complicate my visualizations, so it could become a spring break project.
+
+**Explain which variables from your data set(s) you will use to answer your question(s).** After wrangling my agrifood CO2 emissions data and creating new columns and calculating mean values for certain variables, I will be able to use: - time (year) - country (selecting US and China (mainland) after renaming appropriately) - total population (male pop + female pop, used to look at emissions per capita)
+
+## HW 2 visualizations to draw from
+
+In HW #2, you should have created some exploratory data viz to better understand your data. You may already have some ideas of how you plan to formally visualize your data, but it’s incredibly helpful to look at visualizations by other creators for inspiration. Find at least two data visualizations that you could (potentially) borrow / adapt pieces from. Link to them or download and embed them into your .qmd file, and explain which elements you might borrow (e.g. the graphic form, legend design, layout, etc.).
+
+## Data Wrangling
+
+```{r setup}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                load packages                             ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+library("tidyverse") # for tidy everything! (data cleaning, wrangling)
+library("here") # for reproducible file paths
+library("janitor") # used to clean column names
+library("naniar") # tools for exploring & handing missing data
+library("ggridges") # {ggplot2} extension for creating ridgeline plots
+library("ggbeeswarm") # {ggplot2} extension for creating categorical scatter (violin point) plots
+library("scales") # provides the internal scaling infrastructure used by ggplot2, and gives you tools to override the default breaks, labels, transformations and palettes (installed automatically with {ggplot2} or {tidyverse})
+library("calecopal") # used for custom plot theme
+library("paletteer") # for custom palettes
+library("ggtext") # used for customizing plot text
+library("ggrepel") # to label lines in plot
+library("viridis") # colorblind-friendly palette
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                import data                               ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+agrifood_emissions <- read_csv(here("data", "Agrofood_co2_emission.csv"))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          data cleaning & wrangling                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# the column names are not tidy, so I'll start out by renaming them to lower_snake_case()
+ag_clean <- agrifood_emissions |> 
+  janitor::clean_names() |> 
+  # the column names are quite long, though informative, so I'll first select the columns/variables I'm most interested in...
+  select(area, year, total_emission, average_temperature_c, urban_population, rural_population, rice_cultivation, crop_residues, pesticides_manufacturing, food_transport, agrifood_systems_waste_disposal, forestland, food_household_consumption, food_retail, food_packaging, savanna_fires, forest_fires, net_forest_conversion, drained_organic_soils_co2, total_population_male, total_population_female) |> 
+  
+  # and then rename them to more easily referable titles 
+  rename(country = area, 
+         avg_temp_c = average_temperature_c,
+         total_emissions = total_emission, # plurals are always so tricky to keep track of, but "emissions" feels more natural than "emission"
+         urban_pop = urban_population,
+         rural_pop = rural_population,
+         pesticide_manuf = pesticides_manufacturing,
+         agfood_waste_disposal = agrifood_systems_waste_disposal,
+         f_hh_consumption = food_household_consumption,
+         net_forest_conv = net_forest_conversion,
+         food_pack = food_packaging)  |> 
+  # adding a total population column
+  mutate(total_pop = (total_population_male + total_population_female)) |> 
+  # making a proportion column to theoretically compare/standardize emissions per capita
+  mutate(emissions_per_capita = (total_emissions / total_pop))
+
+# -------------- Renaming country names ------------------------------------
+rename_function <- function(df, column, old_name, new_name) {
+  # using the specified dataframe
+  df |> 
+    # mutate across the specified column
+    mutate(across(column,
+                  str_replace, # use the str_replace function
+                  pattern = old_name, # find the string pattern old_name
+                  replacement = new_name)) # replace with new_name
+}
+
+
+# renaming agri-food emissions countries ----
+
+ag_renamed <- ag_clean |> 
+  rename_function("country", "China, Hong Kong SAR", "Hong Kong") |> 
+  rename_function("country", "China, Taiwan Province of", "Taiwan") |> 
+  rename_function("country", "China, mainland", "China (mainland)") |> 
+  rename_function("country", "United States of America", "USA") |> 
+  rename_function("country", "Venezuela (Bolivarian Republic of)", "Venezuela") |> 
+  rename_function("country", "Bolivia (Plurinational State of)", "Bolivia") |> # for some reason, this renaming line doesn't seem to work...
+  rename_function("country", "United Kingdom of Great Britain and Northern Ireland", "United Kingdom") |> 
+  rename_function("country", "Democratic Republic of the Congo", "DRC")
+
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          creating subsets                                ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+top_emitters <- ag_econ_join |> 
+#  group_by(year, country) |> 
+#  arrange(desc(total_emissions)) |> 
+  filter(country %in% c("China (mainland)", "Indonesia", "Brazil", "USA", "India")) |> 
+  mutate(label = if_else(year == max(year),
+                         as.character(country), NA_character_)) # to label plot 
+ 
+
+
+# top emitters per capita
+top_per_cap <- ag_econ_join |> 
+  group_by(year, country) |> 
+  arrange(desc(emissions_per_capita)) |> 
+  filter(country %in% c("Belize", "Botswana", "Guyana", "Suriname", "Trinidad and Tobago"))
+
+usa_food <- ag_econ_join |> 
+  filter(country %in% c("USA"))
+
+
+emissions_2020 <- ag_econ_join |> 
+  filter(year %in% c("2020"))
+
+emissions_2020_grouped <- ag_econ_join |> 
+  filter(year %in% c("2020")) |> 
+  group_by(quartile)
+
+top_emitters_2020 <- top_emitters |> 
+  filter(year %in% c("2020"))
+
+
+```
+
+
+
+
+
+## Hand-drawn visualizations
+
+Hand-draw your anticipated three visualizations (option 1) or infographic (option 2). Take a photo of your drawing and embed it in your rendered .qmd file – note that these are not exploratory visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4.
+
+```{r}
+#| eval: true
+#| echo: false
+#| fig-align: "center"
+#| out-width: "100%"
+#| fig-alt: "Alt text here"
+knitr::include_graphics("path/to/image")
+```
+
+-   Mock up your visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
+
+    -   have your data plotted (if you’re experimenting with an advanced graphic form(s) that were not explicitly covered in class, we understand that this may take some more time to build; you should have as much put together as possible)
+
+    -   use appropriate strategies to highlight / focus attention on a clear message
+
+    -   include appropriate text such as titles, captions, axis labels
+
+    -   experiment with colors and typefaces / fonts
+
+    -   create a presentable / aesthetically-pleasing theme (e.g. (re)move gridlines / legends as appropriate, adjust font sizes, etc.)
+
+```{r}
+
+
+
+```
+
+-   Answer the following questions:
+
+    -   What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
+
+    -   What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
+
+    -   What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
+
+library(networkD3) , sankeyNetwork package to make Sankey Diagram/Network
