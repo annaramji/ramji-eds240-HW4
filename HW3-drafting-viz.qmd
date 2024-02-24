@@ -9,7 +9,9 @@ format:
 
 For HW #3, you must complete the following:
 
-**Which option do you plan to pursue?** - I plan to pursue option 2 (infographic with 3 subquestions)
+**Which option do you plan to pursue?** 
+
+- I plan to pursue option 2 (infographic with 3 subquestions)
 
 **Restate your question(s). Has this changed at all since HW #1? If yes, how so?**
 
@@ -219,7 +221,10 @@ usa_china_90_20 <- usa_china |>
 
 all_avg_emissions <- ag_clean |> 
   group_by(year) |> 
-  summarize(avg_emissions = mean(total_emissions, na.rm = TRUE)) |> 
+  summarize(avg_tot_emissions = mean(total_emissions,
+                                     na.rm = TRUE),
+            avg_per_cap_emissions = mean(emissions_per_capita,
+                                         na.rm = TRUE)) |> 
   mutate(country = "Global Average")
 
 
@@ -309,6 +314,111 @@ usa_china_tot_emissions_plot <- ggplot() +
         plot.caption = element_text(family = "Futura"))
 
 usa_china_tot_emissions_plot
+
+
+#usa_china_per_cap_plot <- 
+ggplot() +
+  geom_line(data = usa_china,
+            aes(x = year,
+                y = emissions_per_capita,
+                color = country,
+                linetype = country)) +
+  
+  # adding global average line
+  geom_line(data = all_avg_emissions,
+            aes(x = year,
+                y = avg_per_cap_emissions,
+                color = country,
+                linetype = country),
+            linetype = "longdash",
+            linewidth = 0.5) +
+  
+  # rescaling y-axis to be more legible (than 2e+06, for example)
+  # scale_y_continuous(label = label_number(accuracy = 1, 
+  #                                         scale = 0.000001, # millions
+  #                                         suffix = "M")) +
+  # scale_color_manual(values = c("red",
+  #                               "darkcyan",
+  #                               "mediumblue")) +
+  # 
+  # updating labels, titles, theme
+  labs(x = "Year", 
+       y = "Agri-food CO2 Emissions (kt*)",
+       title = "Agri-food CO2 emissions Per Capita",
+       subtitle = "in the USA and China (1990-2020)",
+       caption = "*1 kiloton (kt) = 1000 kg",
+       color = "Country",
+       linetype = "Country") +
+  theme_bw() +
+  
+  # ================== Theme ===============================
+theme(
+  # removing most gridlines 
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.x = element_blank(),
+  panel.grid.minor.y = element_blank(),
+  # lighter line color to emphasize trend over time
+  panel.grid.major.y = element_line(color = "whitesmoke"),
+  
+  # increasing spacing between plots
+  panel.spacing.x = unit(1.5, "lines"),
+  # removing background color of faceted plot labels
+  strip.background = element_rect(fill = "transparent"),
+  
+  # adjusting legend position to sit within the plot 
+  legend.position = c(0.8, 0.2),
+  
+  # adjusting text elements of different plot components
+  strip.text = element_text(family = "Futura", size = 10),
+  
+  # ---------------- title ---------------------
+  plot.title.position = "plot",
+  plot.title = element_text(hjust = 0.45,
+                            vjust = 1,
+                            family = "Futura",
+                            face = "bold",
+                            size = 18),
+  
+  # --------------- subtitle -------------------
+  
+  plot.subtitle = element_text(family = "Futura",
+                               face = "italic", 
+                               size = 15,
+                               vjust = 1,
+                               hjust = 0.45),
+  
+  # --------------- legend ----------------------
+  legend.title = element_text(family = "Futura",
+                              face = "bold",
+                              size = 11),
+  legend.title.align = 0.5,
+  legend.text = element_text(family = "Futura",
+                             size = 11),
+  
+  # --------------- x-axis ---------------------
+  axis.title.x = element_text(vjust = -1,
+                              family = "Futura",
+                              face = "bold",
+                              size = 12),
+  axis.text.x = element_text(angle = 40,
+                             hjust = 0.9,
+                             vjust = 0.9,
+                             family = "Futura"),
+  
+  # --------------- y-axis ----------------------
+  axis.title.y = element_text(family = "Futura",
+                              vjust = 2,
+                              face = "bold",
+                              size = 12),
+  axis.text.y = element_text(family = "Futura"),
+  
+  # ------------- caption -----------------------
+  plot.caption = element_text(family = "Futura",
+                              hjust = 0.9,
+                              size = 10)
+)
+
+usa_china_per_cap_plot
 ```
 
 
@@ -430,31 +540,34 @@ p <- sankeyNetwork(Links = sankey_df, Nodes = nodes,
               Source = "IDsource", Target = "IDtarget",
               Value = "value", NodeID = "name", 
               sinksRight=FALSE)
+
 p
 
 
 ```
 
-```{r plot-2}
 
 
 
-```
+## Plot 2.2
 
+Dumbbell plot of emissions by source in US, China (faceted)
 
-## Plot 2.2: Dumbbell Plot
+### Plot 2 prep
 
-Bar plot of emissions by source in US, China (faceted)
-
-```{r plot-3-prep}
+```{r plot-2-prep}
 # making subsets of relevant columns, years, total population, emissions per capita
 
 usa_china_subset <- usa_china_90_20 |> 
+  # manually deselecting lower emissions columns
   select(-c(forestland, fires_in_organic_soils,
             fires_in_humid_tropical_forests,
             savanna_fires, forest_fires,
             drained_organic_soils_co2, 
-            pesticides_manufacturing)) |> 
+            pesticides_manufacturing,
+            manure_applied_to_soils,
+            crop_residues
+            )) |> 
   pivot_longer(cols = -c(country, year, rural_pop, urban_pop, total_population_male, total_population_female, total_pop, avg_temp_c, emissions_per_capita, total_emissions, ippu),
                names_to = "emission_source",
                values_to = "emissions_kt") |> 
@@ -522,8 +635,12 @@ dumb_3 <- dumb_2 |>
 #head(usa_china_dumb)
 ```
 
+#### Plot 2: Dumbell Plot
 
-```{r plot-3}
+```{r plot-2, fig.height=7, fig.width=8}
+
+
+# cols <- c("1990" = "#1a4301", "2020" = "#538d22")
 
 ggplot(data = dumb_3) +
   # drawing a line between the two emissions levels for each of these groups
@@ -535,15 +652,15 @@ geom_segment(aes(x = emissions_1990,
              alpha = 0.5) +
   geom_point(aes(x = emissions_1990,
                  y = emission_source),
-                 color = "darkgreen",
+                 color = "#245501",
              size = 2,
-             alpha = 0.8) +
+             alpha = 0.9) +
    geom_point(aes(x = emissions_2020,
                  y = emission_source),
-                 color = "limegreen",
+                 color = c("#73a942"),
               size = 2,
-              alpha = 0.8) +
-    # rescaling y-axis to be more legible (than 2e+06, for example)
+              alpha = 0.9) +
+    # rescaling x-axis to be more legible (than 2e+05, for example)
   scale_x_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.001, # thousands
                                           suffix = "k")) +
@@ -552,23 +669,100 @@ geom_segment(aes(x = emissions_1990,
              scales = "free_y") + # release these from groupings that aren't a part of these facet groups
   theme_bw() +
   labs(
-    title = "Agrifood CO2 Emissions in USA vs. China in 1990 vs. 2020",
+    title = "Agrifood CO2 Emissions Over Time in USA vs. China",
+    subtitle = "Top Emissions Sources in <span style='color:#245501;'>**1990**</span> vs. <span style='color:#73a942;'>**2020**</span>",
     y = "",
-    x = "CO2 Emissions (kt)"
+    x = "Agrifood CO2 Emissions (kt*)",
+    caption = "*1 kiloton (kt) = 1000 kg"
+ #   color = "Year"
   ) +
-  theme(
-    panel.grid.minor.x = element_blank(),
-    panel.grid.major.y = element_blank(),
-    strip.background = element_rect(fill = "transparent")
-  )
+    # ================== Theme ===============================
+theme(
+  # removing most gridlines 
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.y = element_blank(),
+  
+  # increasing spacing between plots
+  panel.spacing.y = unit(0.5, "lines"),
+  # removing background color of faceted plot labels
+  strip.background = element_rect(fill = "transparent"),
+  
+  # adjusting legend position to sit within the plot 
+  legend.position = c(0.8, 0.2),
+  
+  # adjusting text elements of different plot components
+  strip.text = element_text(family = "Futura", size = 11),
+  
+  # ---------------- title ---------------------
+  plot.title.position = "plot",
+  plot.title = element_text(hjust = 0.5,
+                            vjust = 1,
+                            family = "Futura",
+                            face = "bold",
+                            size = 18,
+                            margin = margin(t = 0.3, r = 0, 
+                                            b = 0.2, l = 0,
+                                            unit = "lines")),
+  
+  # --------------- subtitle -------------------
+  
+  # plot.subtitle = element_text(family = "Futura",
+  #                              face = "italic", 
+  #                              size = 15,
+  #                              vjust = 1,
+  #                              hjust = 0.45),
+  
+  plot.subtitle = ggtext::element_markdown(family = "Futura",
+                               face = "italic", 
+                               size = 15,
+                               vjust = 1,
+                               hjust = 0.5,
+                               margin = margin(t = 0.2, r = 0, 
+                                            b = 1.1, l = 0,
+                                            unit = "lines")),
+  
+  # --------------- x-axis ---------------------
+  axis.title.x = element_text(vjust = -1,
+                              family = "Futura",
+                              face = "bold",
+                              size = 12,
+                              margin = margin(t = 0.7, r = 0, 
+                                            b = 1, l = 0,
+                                            unit = "lines")),
+  axis.text.x = element_text(vjust = 0.9,
+                             family = "Futura"),
+  
+  # --------------- y-axis ----------------------
+  axis.title.y = element_text(family = "Futura",
+                          #    vjust = 2,
+                              face = "bold",
+                              size = 12),
+  axis.text.y = element_text(family = "Futura"),
+  
+  # ------------- caption -----------------------
+  plot.caption = element_text(family = "Futura",
+                              hjust = 1,
+                              size = 10,
+                              margin = margin(t = 2, b = 0.8,
+                                              l = 0, r = 0.5,
+                                              unit = "lines"))
 
+)
+    
+  
+
+
+
+# plot +
+#   labs(subtitle = "Some subtitle text where <span style='color:red;'>**these words**</span> are bolded and red") +
+#   theme(plot.subtitle = ggtext::element_markdown())
 
 ```
 
 
 ## Plot 3: Food emissions vs. Rural Pop time series
 
-```{r}
+```{r plot-3-prep}
 # bar plot of top 5 emissions categories for each country?
 
 top_sources <- dumb_3 |> 
@@ -581,8 +775,8 @@ top_sources <- dumb_3 |>
 # 1: In get(name, envir = env) : internal error -3 in R_decompress1
 
 
-# --------- Plotting food emissions trends over time ----------
 
+# --------- Food emissions subset ---------------------------
 usa_china_pivot <- usa_china |> 
   pivot_longer(cols = -c(country, year, rural_pop, urban_pop,
                          total_population_male, total_population_female,
@@ -595,10 +789,139 @@ usa_china_pivot <- usa_china |>
 
 
 food_emissions <- usa_china_pivot |> 
-  filter(emission_source %in% c("food_household_consumption", "food_packaging",
-                                "food_processing", "food_retail",
-                                "food_transport"))
+  filter(emission_source %in% c("food_household_consumption",
+                                "food_packaging",
+                                "food_processing",
+                                "food_retail",
+                                "food_transport")) |> 
+  mutate(year = lubridate::ymd(year, truncated = 2L))
+```
 
+
+```{r plot-3, fig.width=8, fig.height=5.5}
+# creating labels for faceted plots
+
+source_labs <- c("Food Household Consumption",
+                 "Food Packaging",
+                 "Food Processing",
+                 "Food Retail",
+                 "Food Transport")
+
+names(source_labs) <- c("food_household_consumption",
+                 "food_packaging",
+                 "food_processing",
+                 "food_retail",
+                 "food_transport")
+
+cols <- c("China (mainland)" = "#fb3640", "USA" = "#0a2463")
+
+# --------- Plotting food emissions trends over time ----------
+
+food_plot <- ggplot(data = food_emissions,
+                    aes(x = year,
+                        y = emissions_kt)) +
+  geom_point(aes(color = country),
+             alpha = 0.9) +
+  # rescaling y-axis to be more legible (than 2e+06, for example)
+  scale_y_continuous(label = label_number(accuracy = 1, 
+                                          scale = 0.001, # thousands
+                                          suffix = "k")) +
+  scale_color_manual(values = cols) +
+  # adding trend line 
+  geom_smooth(method = "lm",
+              formula = y ~ x,
+              aes(color = country),
+              show.legend = FALSE,
+              se = FALSE,
+              alpha = 0.6) +
+  
+  # facet wrapping by source type
+  facet_wrap(~emission_source,
+             nrow = 2,
+             labeller = labeller(emission_source = source_labs)) +
+  
+  # -------- setting labels ----------------------------------
+labs(
+  title = "Annual Food Sector CO2 Emissions Over Time",
+  subtitle = "in China (mainland) vs. United States of America (USA)",
+  color = "Country",
+  x = "Year",
+  y = "Emissions (CO2 kt*)",
+  caption = "*1 kiloton (kt) = 1000 kg"
+) +
+  
+  # setting base theme
+  theme_bw() +
+  
+  # ================== Theme ===============================
+theme(
+  # removing most gridlines 
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.x = element_blank(),
+  panel.grid.minor.y = element_blank(),
+  # lighter line color to emphasize trend over time
+  panel.grid.major.y = element_line(color = "whitesmoke"),
+  
+  # increasing spacing between plots
+  panel.spacing.x = unit(1.5, "lines"),
+  # removing background color of faceted plot labels
+  strip.background = element_rect(fill = "transparent"),
+  
+  # adjusting legend position to sit within the plot 
+  legend.position = c(0.8, 0.2),
+  
+  # adjusting text elements of different plot components
+  strip.text = element_text(family = "Futura", size = 10),
+  
+  # ---------------- title ---------------------
+  plot.title.position = "plot",
+  plot.title = element_text(hjust = 0.45,
+                            vjust = 1,
+                            family = "Futura",
+                            face = "bold",
+                            size = 18),
+  
+  # --------------- subtitle -------------------
+  
+  plot.subtitle = element_text(family = "Futura",
+                               face = "italic", 
+                               size = 15,
+                               vjust = 1,
+                               hjust = 0.45),
+  
+  # --------------- legend ----------------------
+  legend.title = element_text(family = "Futura",
+                              face = "bold",
+                              size = 11),
+  legend.title.align = 0.5,
+  legend.text = element_text(family = "Futura",
+                             size = 11),
+  
+  # --------------- x-axis ---------------------
+  axis.title.x = element_text(vjust = -1,
+                              family = "Futura",
+                              face = "bold",
+                              size = 12),
+  axis.text.x = element_text(angle = 40,
+                             hjust = 0.9,
+                             vjust = 0.9,
+                             family = "Futura"),
+  
+  # --------------- y-axis ----------------------
+  axis.title.y = element_text(family = "Futura",
+                              vjust = 2,
+                              face = "bold",
+                              size = 12),
+  axis.text.y = element_text(family = "Futura"),
+  
+  # ------------- caption -----------------------
+  plot.caption = element_text(family = "Futura",
+                              hjust = 0.9,
+                              size = 10)
+  
+)
+
+food_plot
 
 ```
 
