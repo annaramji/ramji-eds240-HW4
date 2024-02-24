@@ -311,7 +311,8 @@ usa_china_tot_emissions_plot
 ```
 
 
-## Plot 3
+
+## Plot 2
 
 Sankey thoughts: 
 
@@ -417,7 +418,7 @@ sankey_df <- data.frame(
 # From these flows we need to create a node data frame: it lists every entities involved in the flow
 nodes <- data.frame(
   name=c(as.character(sankey_df$source), 
-  as.character(sankey_df$target)) |>  unique()
+  as.character(sankey_df$target)) %>% unique()
 )
 
 # With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
@@ -434,6 +435,44 @@ p
 
 ```
 
+
+
+```{r sankey-example}
+
+# Library
+library(networkD3)
+library(dplyr)
+ 
+# A connection data frame is a list of flows with intensity for each flow
+links <- data.frame(
+  source=c("group_A","group_A", "group_B", "group_C", "group_C", "group_E"), 
+  target=c("group_C","group_D", "group_E", "group_F", "group_G", "group_H"), 
+  value=c(2,3, 2, 3, 1, 3)
+  )
+ 
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes <- data.frame(
+  name=c(as.character(links$source), 
+  as.character(links$target)) %>% unique()
+)
+ 
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
+ 
+# Make the Network
+p <- sankeyNetwork(Links = links, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE)
+p
+
+# save the widget
+# library(htmlwidgets)
+# saveWidget(p, file=paste0( getwd(), "/HtmlWidget/sankeyBasic1.html"))
+
+```
+
 ```{r plot-2}
 
 
@@ -441,129 +480,13 @@ p
 ```
 
 
-## Plot 3: Dumbbell Plot
+## Plot 3
 
-Bar plot of emissions by source in US, China (faceted)
-
-```{r plot-3-prep}
-
-# making subsets of relevant columns, years, total population, emissions per capita
-
-usa_china_subset <- usa_china_90_20 |> 
-  select(-c(forestland, fires_in_organic_soils, fires_in_humid_tropical_forests)) |> 
-  pivot_longer(cols = -c(country, year, rural_pop, urban_pop, total_population_male, total_population_female, total_pop, avg_temp_c, emissions_per_capita, total_emissions, ippu),
-               names_to = "emission_source",
-               values_to = "emissions_kt") |> 
-  relocate(c(emission_source, emissions_kt), .after = year) |> 
-  mutate(year = as.factor(year)) |> 
-  group_by(country, year)
-
-plot2_v1 <- ggplot(data = usa_china_subset,
-       aes(x = fct_reorder(emission_source, emissions_kt),
-           y = emissions_kt,
-           fill = year)) +
-  geom_col() +
-  coord_flip() +
-  facet_wrap(~country, ncol = 1) +
-  theme_bw()
-
-dumb_90 <- usa_china_subset |> 
-  filter(year %in% c("1990")) |> 
-  ungroup() |> 
-  select(-year) |> 
-  mutate(emissions_1990 = emissions_kt) |> 
-  select(-emissions_kt)
-
-dumb_20 <- usa_china_subset |> 
-  filter(year %in% c("2020")) |> 
-  ungroup() |> 
-  select(-year) |> 
-  mutate(emissions_2020 = emissions_kt) |> 
-  select(-emissions_kt)
+```{r plot-3}
 
 
-# dumbbell, not dumb!
-dumb_data <- full_join(dumb_90, dumb_20
-                   #    , .name_repair = "check_unique"
-                       )
-
-dumb_2 <- bind_cols(dumb_90, dumb_20) 
-
-dumb_3 <- dumb_2 |> 
-#  rename_all(.funs = funs(sub("\\...*", "", names(dumb2))))
-#  rename_with(~str_replace(., "...*", ""))
-  rename(emission_source = emission_source...2,
-         country = country...1) |> 
-  relocate(c(emissions_1990, emissions_2020), .after = emission_source)
-
-# Dumbbell plot
-
-# create year subsets to plot
-# usa_china_dumb <- usa_china_subset |> 
-#   ungroup() |> 
-#   group_by(emission_source) |> 
-# #  group_by(country) |> 
-#   pivot_wider(names_from = year, values_from = emissions_kt, names_prefix = "emissions_") |> 
-#   relocate(c(emissions_1990, emissions_2020), .after = emission_source) 
-# |> 
-  # mutate(emissions_kt = case_when(
-  #   # keep 1990 values if 2020 is NA
-  #   is.na(emissions_2020) ~ emissions_1990,
-  #   # else if 1990 values are na, keep 2020 values
-  #   is.na(emissions_1990) ~ emissions_2020
-  # )
-  # ) |> 
-  # relocate(emissions_kt, .after = emissions_2020)
-#head(usa_china_dumb)
-
-ggplot(data = dumb_3) +
-geom_segment(aes(x = emissions_1990, 
-                   xend = emissions_2020,
-                   y = fct_reorder(emission_source, emissions_1990),
-                   yend = emission_source)) +
-  geom_point(aes(x = emissions_1990,
-                 y = emission_source),
-                 color = "darkgreen") +
-   geom_point(aes(x = emissions_2020,
-                 y = emission_source),
-                 color = "limegreen") +
-  facet_wrap(~country,
-             nrow = 2, # stack these vertically
-             scales = "free_y") + # release these from groupings that aren't a part of these facet groups
-  theme_bw() +
-  labs(
-    title = "Agrifood CO2 Emissions in USA vs. China in 1990 vs. 2020",
-    y = "",
-    x = "CO2 Emissions (kt)"
-  ) +
-  theme(
-    panel.grid.minor.x = element_blank()
-  )
-
-
-ggplot(data = subset_jobs) +
-  # drawing a line between the two earnings for each of these groups
-  geom_segment(aes(x = total_earnings_female, 
-                   xend = total_earnings_male,
-                   y = fct_reorder(occupation, total_earnings), # reorder occupation in a more logical way
-                   yend = occupation)) +
-  geom_point(aes(x = total_earnings_male,
-                 y = occupation),
-             color = "#CD93D8", size = 2) +
-  geom_point(aes(x = total_earnings_female,
-                 y = occupation),
-             color = "#6A1E99", size = 2) +
-  facet_wrap(~group_label,
-             nrow = 3, # stack these vertically
-             scales = "free_y") # release these from groupings that aren't a part of these facet groups
 
 ```
-
-
-
-
-
-
 
 -   Answer the following questions:
 

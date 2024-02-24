@@ -1,0 +1,120 @@
+
+
+
+
+```{r}
+library("tidyverse") # for tidy everything! (data cleaning, wrangling)
+library("here") # for reproducible file paths
+library("janitor") # used to clean column names
+library("countrycode") # for renaming countries
+
+library("glue") # for scientific labeling on plots 
+
+library("naniar") # tools for exploring & handing missing data
+library("ggridges") # {ggplot2} extension for creating ridgeline plots
+library("ggbeeswarm") # {ggplot2} extension for creating categorical scatter (violin point) plots
+library("scales") # provides the internal scaling infrastructure used by ggplot2, and gives you tools to override the default breaks, labels, transformations and palettes (installed automatically with {ggplot2} or {tidyverse})
+library("calecopal") # used for custom plot theme
+library("paletteer") # for custom palettes
+library("ggtext") # used for customizing plot text
+library("ggrepel") # to label lines in plot
+library("viridis") # colorblind-friendly palette
+
+
+```
+
+
+
+
+```{r}
+climate_trace <- read_csv(here("data", "trace_data_combined_false_since_2015_to_2022.csv"))
+```
+
+
+```{r}
+# make new country column using iso3_country column
+climate_trace$country <- countrycode(climate_trace$iso3_country, "iso3c", "country.name")
+
+# dropped SCG and XKX
+```
+
+
+```{r}
+# aggregated subsets (global totals)
+climate_sector_totals <- climate_trace |> 
+  group_by(year, sector) |> 
+  summarize(total_sector_emissions_20yr = sum(co2e_20yr),
+            total_sector_emissions_100yr = sum(co2e_100yr))
+
+climate_totals <- climate_trace |> 
+  group_by(year) |> 
+  summarize(total_emissions_20yr = sum(co2e_20yr),
+            total_emissions_100yr = sum(co2e_100yr))
+
+sector_pct_totals <- left_join(climate_sector_totals, climate_totals) |> 
+  mutate(pct_sector_20yr = (total_sector_emissions_20yr / total_emissions_20yr) * 100,
+         pct_sector_100yr = (total_sector_emissions_100yr / total_emissions_100yr) * 100)
+```
+
+
+```{r}
+# data exploration, preliminary plotting 
+
+sector_pct_totals |> 
+  ggplot() +
+  geom_line(aes(x = year,
+                y = pct_sector_20yr,
+                color = sector)) +
+  theme_bw()
+
+sector_pct_totals |> 
+  ggplot() +
+  geom_line(aes(x = year,
+                y = total_sector_emissions_20yr,
+                color = sector)) +
+  theme_bw()
+
+
+```
+
+```{r tree-map}
+# library
+library(treemap)
+library(d3Tree)
+
+ 
+# Create data
+group <- c(sector_pct_totals$sector)
+value <- c(sector_pct_totals$pct_sector_20yr)
+data <- data.frame(group,value)
+ 
+# treemap
+p <-  treemap(data,
+            index="group",
+            vSize="value",
+            type="index"
+            )
+
+# alternatively
+treemap(sector_pct_totals,
+        index="sector",
+        vSize="pct_sector_20yr",
+        type="index",
+        title = "Agrifood CO2-Equivalent Emissions: Percent Contribution by Sector",
+        fontsize.labels=c(14),                # size of labels. Give the size per level of aggregation: size for group, size for subgroup, sub-subgroups...
+        fontcolor.labels=c("white"),    # Color of labels
+        fontface.labels=c(2),                  # Font of labels: 1,2,3,4 for normal, bold, italic, bold-italic...
+        bg.labels=c("transparent"),              # Background color of labels
+        align.labels=list(
+          c("center", "center"), 
+          c("right", "bottom")
+        ),                                   # Where to place labels in the rectangle?
+        overlap.labels=0.5,                      # number between 0 and 1 that determines the tolerance of the overlap between labels. 0 means that labels of lower levels are not printed if higher level labels overlap, 1  means that labels are always printed. In-between values, for instance the default value .5, means that lower level labels are printed if other labels do not overlap with more than .5  times their area size.
+        inflate.labels=F,                        # If true, labels are bigger when rectangle is bigger.
+        
+            )
+# make it interactive 
+inter <- d3tree(p )
+inter
+```
+
