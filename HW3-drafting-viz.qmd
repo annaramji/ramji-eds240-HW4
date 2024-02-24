@@ -258,6 +258,7 @@ usa_china_tot_emissions_plot <- ggplot() +
   #               linetype = country),
       #      linetype = "longdash",
  #           linewidth = 0.5) +
+  
   # rescaling y-axis to be more legible (than 2e+06, for example)
   scale_y_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.000001, # millions
@@ -311,7 +312,7 @@ usa_china_tot_emissions_plot
 ```
 
 
-## Plot 3
+## Plot 2.1: Sankey (not static, so scrapped)
 
 Sankey thoughts: 
 
@@ -441,16 +442,19 @@ p
 ```
 
 
-## Plot 3: Dumbbell Plot
+## Plot 2.2: Dumbbell Plot
 
 Bar plot of emissions by source in US, China (faceted)
 
 ```{r plot-3-prep}
-
 # making subsets of relevant columns, years, total population, emissions per capita
 
 usa_china_subset <- usa_china_90_20 |> 
-  select(-c(forestland, fires_in_organic_soils, fires_in_humid_tropical_forests)) |> 
+  select(-c(forestland, fires_in_organic_soils,
+            fires_in_humid_tropical_forests,
+            savanna_fires, forest_fires,
+            drained_organic_soils_co2, 
+            pesticides_manufacturing)) |> 
   pivot_longer(cols = -c(country, year, rural_pop, urban_pop, total_population_male, total_population_female, total_pop, avg_temp_c, emissions_per_capita, total_emissions, ippu),
                names_to = "emission_source",
                values_to = "emissions_kt") |> 
@@ -493,7 +497,8 @@ dumb_3 <- dumb_2 |>
 #  rename_all(.funs = funs(sub("\\...*", "", names(dumb2))))
 #  rename_with(~str_replace(., "...*", ""))
   rename(emission_source = emission_source...2,
-         country = country...1) |> 
+         country = country...1,
+         total_pop = total_pop...10) |> 
   relocate(c(emissions_1990, emissions_2020), .after = emission_source)
 
 # Dumbbell plot
@@ -515,18 +520,33 @@ dumb_3 <- dumb_2 |>
   # ) |> 
   # relocate(emissions_kt, .after = emissions_2020)
 #head(usa_china_dumb)
+```
+
+
+```{r plot-3}
 
 ggplot(data = dumb_3) +
+  # drawing a line between the two emissions levels for each of these groups
 geom_segment(aes(x = emissions_1990, 
                    xend = emissions_2020,
-                   y = fct_reorder(emission_source, emissions_1990),
-                   yend = emission_source)) +
+                   y = fct_reorder(emission_source, emissions_2020),
+                   yend = emission_source),
+             size = 0.5, 
+             alpha = 0.5) +
   geom_point(aes(x = emissions_1990,
                  y = emission_source),
-                 color = "darkgreen") +
+                 color = "darkgreen",
+             size = 2,
+             alpha = 0.8) +
    geom_point(aes(x = emissions_2020,
                  y = emission_source),
-                 color = "limegreen") +
+                 color = "limegreen",
+              size = 2,
+              alpha = 0.8) +
+    # rescaling y-axis to be more legible (than 2e+06, for example)
+  scale_x_continuous(label = label_number(accuracy = 1, 
+                                          scale = 0.001, # thousands
+                                          suffix = "k")) +
   facet_wrap(~country,
              nrow = 2, # stack these vertically
              scales = "free_y") + # release these from groupings that aren't a part of these facet groups
@@ -537,25 +557,48 @@ geom_segment(aes(x = emissions_1990,
     x = "CO2 Emissions (kt)"
   ) +
   theme(
-    panel.grid.minor.x = element_blank()
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_blank(),
+    strip.background = element_rect(fill = "transparent")
   )
 
 
-ggplot(data = subset_jobs) +
-  # drawing a line between the two earnings for each of these groups
-  geom_segment(aes(x = total_earnings_female, 
-                   xend = total_earnings_male,
-                   y = fct_reorder(occupation, total_earnings), # reorder occupation in a more logical way
-                   yend = occupation)) +
-  geom_point(aes(x = total_earnings_male,
-                 y = occupation),
-             color = "#CD93D8", size = 2) +
-  geom_point(aes(x = total_earnings_female,
-                 y = occupation),
-             color = "#6A1E99", size = 2) +
-  facet_wrap(~group_label,
-             nrow = 3, # stack these vertically
-             scales = "free_y") # release these from groupings that aren't a part of these facet groups
+```
+
+
+## Plot 3: Food emissions vs. Rural Pop time series
+
+```{r}
+# bar plot of top 5 emissions categories for each country?
+
+top_sources <- dumb_3 |> 
+  ungroup() |> 
+  group_by(country, emission_source) |> 
+  arrange(desc(emissions_2020))
+
+#top_sources
+# Warning messages:
+# 1: In get(name, envir = env) : internal error -3 in R_decompress1
+
+
+# --------- Plotting food emissions trends over time ----------
+
+usa_china_pivot <- usa_china |> 
+  pivot_longer(cols = -c(country, year, rural_pop, urban_pop,
+                         total_population_male, total_population_female,
+                         total_pop, avg_temp_c, emissions_per_capita,
+                         total_emissions),
+               names_to = "emission_source",
+               values_to = "emissions_kt") |> 
+  relocate(c(emission_source, emissions_kt), .after = year) |> 
+  mutate(year = as.factor(year))
+
+
+food_emissions <- usa_china_pivot |> 
+  filter(emission_source %in% c("food_household_consumption", "food_packaging",
+                                "food_processing", "food_retail",
+                                "food_transport"))
+
 
 ```
 
