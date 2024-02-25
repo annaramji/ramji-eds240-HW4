@@ -280,11 +280,6 @@ pct_emissions <- function(df, value, total, new_column) {
 # I'm struggling to get this to work 
 title_lab_p1 <- glue::glue("Total agri-food CO<sub>2</sub> emissions")
 
-# setting colors
-cols <- c("China (mainland)" = "#fb3640", "USA" = "#0a2463")
-
-
-
 usa_china_tot_emissions_plot <- ggplot() +
   # geom_point() +
   geom_line(data = usa_china,
@@ -305,7 +300,9 @@ usa_china_tot_emissions_plot <- ggplot() +
   scale_y_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.000001, # millions
                                           suffix = "M")) +
-  scale_color_manual(values = cols) +
+  scale_color_manual(values = c("red",
+                                #   "darkcyan",
+                                "mediumblue")) +
   
   # ---------- updating labels, fit for patchwork ------------
 labs(
@@ -427,7 +424,9 @@ usa_china_per_cap_plot <- ggplot() +
   #             linewidth = 0.5) +
   
 
-scale_color_manual(values = cols) +
+scale_color_manual(values = c("red",
+                              # "darkcyan",
+                              "mediumblue")) +
   
   # ------ updating labels, fit for patchwork ----------
   labs(x = "Year", 
@@ -789,49 +788,42 @@ top_sources <- dumb_3 |>
 
 
 # --------- Food emissions subset ---------------------------
-# usa + china data (full 1990-2020 year range)
 usa_china_pivot <- usa_china |> 
-  # pivot all columns other than this specified list
   pivot_longer(cols = -c(country, year, rural_pop, urban_pop,
                          total_population_male, total_population_female,
                          total_pop, avg_temp_c, emissions_per_capita,
                          total_emissions),
-               names_to = "emission_source", # new column name for types
-               values_to = "emissions_kt") |> # new column name for values
-  # relocate for easier quick-viz
+               names_to = "emission_source",
+               values_to = "emissions_kt") |> 
   relocate(c(emission_source, emissions_kt), .after = year) |> 
-  # making year a factor
   mutate(year = as.factor(year))
 
 
-# food-emission sources only!
 food_emissions <- usa_china_pivot |> 
-  # selecting food-related emissions sources
   filter(emission_source %in% c("food_household_consumption",
                                 "food_packaging",
                                 "food_processing",
                                 "food_retail",
                                 "food_transport")) |> 
-  # making year a Date
   mutate(year = lubridate::ymd(year, truncated = 2L))
 
 ```
 
 ```{r plot-3, fig.width=8, fig.height=5.5}
-
 # creating labels for faceted plots
+
 source_labs <- c("Food Household Consumption",
                  "Food Packaging",
                  "Food Processing",
                  "Food Retail",
                  "Food Transport")
-# indicating which pre-existing name each of the new names match up with 
+
 names(source_labs) <- c("food_household_consumption",
                  "food_packaging",
                  "food_processing",
                  "food_retail",
                  "food_transport")
-# setting colors
+
 cols <- c("China (mainland)" = "#fb3640", "USA" = "#0a2463")
 
 # --------- Plotting food emissions trends over time ----------
