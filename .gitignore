@@ -54,3 +54,7 @@ data
 .DS_Store
 
 *.html
+
+figs/
+
+data/

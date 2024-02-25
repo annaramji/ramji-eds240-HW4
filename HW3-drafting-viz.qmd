@@ -49,13 +49,21 @@ Hand-draw your anticipated three visualizations (option 1) or infographic (optio
 ```{r}
 library("tidyverse") # for tidy everything! (data cleaning, wrangling)
 library("here") # for reproducible file paths
+library(knitr)
+
 #| eval: true
 #| echo: false
 #| fig-align: "center"
 #| out-width: "100%"
-#| fig-alt: "Alt text here"
-knitr::include_graphics("path/to/image")
+#| fig-alt: "Three hand-drawn plots show three different types of data visualizations for data about agri-food CO2 emissions in the USA and China from 1990-2020. The first plot is comprised of two line plots, one showing total emissions and the other showing emissions per capita. They both show the USA and China from 1990-2020, differentiated by line type and color. The second plot is a dumbbell plot of top agri-food emissions sources in the USA and China, with emissions levels for each source shown in 1990 compared to 2020, differentiating years by color. The third plot shows a scatter plot with linear regression applied to facet-wrapped emissions categories in the Food Sector, with USA and China differentiated by color. Overall, trends show that China has extremely high total emissions, with lower emissions per capita than the USA."
+
+knitr::include_graphics("figs/EDS240-drawn-plots-1-2.png")
+knitr::include_graphics("figs/EDS240-drawn-plot3.png")
+
+
 ```
+
+
 
 -   Mock up your visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
 
@@ -616,10 +624,13 @@ p
 
 ```
 
+Note: I'm not going to include this one in my final infographic, I just got excited about the idea of it and failed to realize that it was not in fact such a good idea.
 
 
 
-## Plot 2.2
+
+
+## Plot 2.2 (real plot # 2)
 
 Dumbbell plot of emissions by source in US, China (faceted)
 
@@ -865,6 +876,7 @@ food_emissions <- usa_china_pivot |>
                                 "food_retail",
                                 "food_transport")) |> 
   mutate(year = lubridate::ymd(year, truncated = 2L))
+
 ```
 
 
@@ -1004,8 +1016,12 @@ food_plot
 -   Answer the following questions:
 
     -   What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
+    
+    
 
     -   What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
+    
+    
 
     -   What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
     
