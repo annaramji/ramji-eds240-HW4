@@ -1,69 +1,95 @@
 ---
 author: "Anna Ramji (she/her)"
 date: 2024-01-31
-title: "Homework 2 Part 2"
+title: "Homework 3"
 format:
   html:
     embed-resources: true
+    toc: true
 ---
+
+```{r setup-1}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r setup-2}
+library("knitr")
+library("tidyverse") # for tidy everything! (data cleaning, wrangling)
+library("here") # for reproducible file paths
+```
 
 For HW #3, you must complete the following:
 
-**Which option do you plan to pursue?** 
+**Which option do you plan to pursue?**
 
-- I plan to pursue option 2 (infographic with 3 subquestions)
+-   I plan to pursue option 2 (infographic with 3 subquestions)
 
 **Restate your question(s). Has this changed at all since HW #1? If yes, how so?**
 
 Overarching Q: How have agrifood CO2 emissions changed over time in China and the United States (bigger picture trend)
 
-1.  How have total agrifood CO2 emissions changed over time in China vs. US
+1a. How have total agrifood CO2 emissions changed over time in China vs. US
 
-2.  How have agrifood CO2 emissions per capita changed over time in China vs. US
+1b. How have agrifood CO2 emissions per capita changed over time in China vs. US
 
-3.  What are the key contributors to US agrifood CO2 emissions (sankey diagram) in 2020 (vs 1990 ? would that count as an additional visualization?)
+2.  What are the key contributors to US agrifood CO2 emissions in 2020 vs 1990 in China and USA?
+
+3.  How have CO2 emissions in the Food sector changed over time in the US and China?
 
 Yes, I have decided to drop the economic freedom quartile dataset due to time and assignment constraints. I think if I were able to make 10 visualizations or have another quarter to work with the data, it would be intersting to investigate the relationship between economic freedom quartile and prevalence of specific contributors to agrifood CO2 emissions, but I unfortunately don't have the luxury of time and lots of visualization space on my side. For this reason, I am also no longer planning on incorporating average temperature (ºC) in my visualization. Ideally, I'd be able to look at how changing Econ Freedom Q + change in temp over time impacts specific contributors of emissions (savannah fires, for example) particularly in countries that went from lower to higher quartiles, or look at the biggest contributors to agrifood CO2 emissions by Econ Quartile. This last part could still be interesting and somewhat feasible, but might complicate my visualizations, so it could become a spring break project.
 
-**Explain which variables from your data set(s) you will use to answer your question(s).** After wrangling my agrifood CO2 emissions data and creating new columns and calculating mean values for certain variables, I will be able to use: - time (year) - country (selecting US and China (mainland) after renaming appropriately) - total population (male pop + female pop, used to look at emissions per capita)
+**Explain which variables from your data set(s) you will use to answer your question(s).** After wrangling my agrifood CO2 emissions data and creating new columns and calculating mean values for certain variables, I plan to use:
+
+-   time (year)
+
+-   country (selecting US and China (mainland) after renaming appropriately)
+
+-   total population (column I created from male pop + female pop, used to look at emissions per capita, another column I created),
+
+-   emissions per capita
+
+-   all of the different emissions sources (I end up making an emissions_source column in a pivot_longer step), focusing on highest emission sources and food-specific sources.
 
 ## HW 2 visualizations to draw from
 
 In HW #2, you should have created some exploratory data viz to better understand your data. You may already have some ideas of how you plan to formally visualize your data, but it’s incredibly helpful to look at visualizations by other creators for inspiration. Find at least two data visualizations that you could (potentially) borrow / adapt pieces from. Link to them or download and embed them into your .qmd file, and explain which elements you might borrow (e.g. the graphic form, legend design, layout, etc.).
 
+<https://www.data-to-viz.com/graph/sankey.html> Sankey Diagram (scrapped)
 
-https://www.data-to-viz.com/graph/sankey.html Sankey Diagram 
+I found [this](https://www.cedricscherer.com/img/gallery-tidytuesday//TidyTuesday_Week_2020_31_Palmer_Penguins.jpg) infographic-style visualization set by Cédric Scherer using the Palmer Penguins dataset from a Tidy Tuesday event:
 
+![](figs/TidyTuesday_Week_2020_31_Palmer_Penguins.png){width="539"}
 
+I like the layout of this visualization, and I hope to eventually incorporate the fun, consistent thematic colors and icons (penguin drawings) in my final infographic. I like the use of color in the plot text elements that reduces the need for a legend. I also like the annotations, but I'm unsure of what kind of information would be relevant for annotations on my plots, so I'd appreciate feedback or suggestions on what I can add in that sense.
 
+![](figs/bigmac_index.png)
 
-
-
-
-
+The second interesting/relevant(?) infographic that I found was this one on the [Big Mac Index](https://www.christophenicault.com/media/visualizations/bigmac_index.png) by Christophe Nicault. I like the way that all of the countries are situated in context on the world map, but then certain countreis are highlighted and have more information provided about/data visualized on them in pop-out line and dot plots without the overall infographic feeling too cluttered or text-heavy. I am considering showing the country shapes with representative areas (scaled) for the US and China in my final infographic because of this visualization. I think that the text on the line and dot plots gets a little messy, but I like the use of color in the dots on the plots to indicate values being over or under a certain threshold.
 
 ## Hand-drawn visualizations
 
 Hand-draw your anticipated three visualizations (option 1) or infographic (option 2). Take a photo of your drawing and embed it in your rendered .qmd file – note that these are not exploratory visualizations, but rather your plan for your final visualizations that you will eventually polish and submit with HW #4.
 
 ```{r}
-library("tidyverse") # for tidy everything! (data cleaning, wrangling)
-library("here") # for reproducible file paths
-library(knitr)
 
 #| eval: true
 #| echo: false
 #| fig-align: "center"
 #| out-width: "100%"
-#| fig-alt: "Three hand-drawn plots show three different types of data visualizations for data about agri-food CO2 emissions in the USA and China from 1990-2020. The first plot is comprised of two line plots, one showing total emissions and the other showing emissions per capita. They both show the USA and China from 1990-2020, differentiated by line type and color. The second plot is a dumbbell plot of top agri-food emissions sources in the USA and China, with emissions levels for each source shown in 1990 compared to 2020, differentiating years by color. The third plot shows a scatter plot with linear regression applied to facet-wrapped emissions categories in the Food Sector, with USA and China differentiated by color. Overall, trends show that China has extremely high total emissions, with lower emissions per capita than the USA."
+#| fig-alt: "Three hand-drawn plots show three different types of data visualizations for data about agri-food CO2 emissions in the USA and China from 1990-2020. The first plot is comprised of two line plots, one showing total emissions and the other showing emissions per capita. They both show the USA and China from 1990-2020, differentiated by line type and color. The second plot is a dumbbell plot of top agri-food emissions sources in the USA and China, with emissions levels for each source shown in 1990 compared to 2020, differentiating years by color.  Overall, trends show that China has extremely high total emissions, with lower emissions per capita than the USA."
 
-knitr::include_graphics("figs/EDS240-drawn-plots-1-2.png")
-knitr::include_graphics("figs/EDS240-drawn-plot3.png")
+#knitr::include_graphics("figs/EDS240-drawn-plots-1-2.png")
 
-
+#knitr::include_graphics("figs/EDS240-drawn-plot3.png")
 ```
 
+![](figs/EDS240-drawn-plots-1-2.png){fig-alt="Three hand-drawn plots show three different types of data visualizations for data about agri-food CO2 emissions in the USA and China from 1990-2020. The first plot is comprised of two line plots, one showing total emissions and the other showing emissions per capita. They both show the USA and China from 1990-2020, differentiated by line type and color. The second plot is a dumbbell plot of top agri-food emissions sources in the USA and China, with emissions levels for each source shown in 1990 compared to 2020, differentiating years by color. The third plot shows a scatter plot with linear regression applied to facet-wrapped emissions categories in the Food Sector, with USA and China differentiated by color. Overall, trends show that China has extremely high total emissions, with lower emissions per capita than the USA." fig-align="center" width="534"}
 
+![](figs/EDS240-drawn-plot3.png){fig-alt="This third hand-drawn plot shows facet-wrapped scatter plots with linear regression applied, and the plots are facet-wrapped by emissions categories in the Food Sector, with USA and China differentiated by color. Overall, there appear to be varying degrees of positive, upward trends in this mock-up of the data, with emissions increasing over time in both countries in all food-sector emission sources." fig-align="center" width="585"}
+
+Note: These look remarkably sloppy compared to what they look like in my notebook (they're notably smaller IRL... and I think the way that I scanned them to upload them as PNGs made them look extra-horrific). Yikes! Sorry...
+
+## Visualization Mock-ups
 
 -   Mock up your visualizations using code. We understand that you will continue to iterate on these into HW #4 (particularly after receiving feedback), but by the end of HW #3, you should:
 
@@ -84,22 +110,20 @@ knitr::include_graphics("figs/EDS240-drawn-plot3.png")
 ##                                load packages                             ----
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+# read-in earlier
+#library("tidyverse") # for tidy everything! (data cleaning, wrangling)
+#library("here") # for reproducible file paths
 
-library("tidyverse") # for tidy everything! (data cleaning, wrangling)
-library("here") # for reproducible file paths
 library("janitor") # used to clean column names
+
+library("patchwork") # to stitch plots together 
 
 library("glue") # for scientific labeling on plots 
 
-library("naniar") # tools for exploring & handing missing data
-library("ggridges") # {ggplot2} extension for creating ridgeline plots
-library("ggbeeswarm") # {ggplot2} extension for creating categorical scatter (violin point) plots
 library("scales") # provides the internal scaling infrastructure used by ggplot2, and gives you tools to override the default breaks, labels, transformations and palettes (installed automatically with {ggplot2} or {tidyverse})
-library("calecopal") # used for custom plot theme
 library("paletteer") # for custom palettes
 library("ggtext") # used for customizing plot text
-library("ggrepel") # to label lines in plot
-library("viridis") # colorblind-friendly palette
+# library("ggrepel") # to label lines in plot
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ##                                import data                               ----
@@ -252,7 +276,7 @@ pct_emissions <- function(df, value, total, new_column) {
 
 ## Plot 1: Agri-food CO2 Emissions Comparison
 
-```{r plot-1}
+```{r plot-1, fig.width=8, fig.height=9}
 # I'm struggling to get this to work 
 title_lab_p1 <- glue::glue("Total agri-food CO<sub>2</sub> emissions")
 
@@ -319,6 +343,8 @@ theme(
                             family = "Futura",
                             face = "bold",
                             size = 18,
+              # it took a LOT of trial and error to get all of these margins set
+              # for each text element (title, substitle, caption, etc. for each plot)
                             margin = margin(t = 1, r = 0.5, 
                                             b = 1.2, l = 0.5,
                                             unit = "lines")),
@@ -328,6 +354,7 @@ theme(
   plot.subtitle = element_text(family = "Futura",
                                face = "bold", 
                                size = 16,
+                               # adjusting positioning of text
                                vjust = 1,
                                hjust = 0.45,
                                margin = margin(t = 0.2, r = 0, 
@@ -357,7 +384,7 @@ theme(
                               vjust = 2,
                               face = "bold",
                               size = 12,
-                              # customize title margins 
+                              # customize axis title margins/spacing
                               margin = margin(t = 15, r = 1, 
                                               b = 0, l = 0.5,
                                               unit = "lines")),
@@ -499,11 +526,10 @@ theme(
 usa_china_tot_emissions_plot / usa_china_per_cap_plot
 ```
 
+I don't know why the second line of my plot caption is slightly indented closer to the center, and I have tried and failed to fix it. Any suggestions or tips are very welcome!
 
+## Plot 2: Dumbbell plot
 
-
-
-## Plot 2: Dumbbell plot 
 of emissions by source in US, China (faceted)
 
 ### Plot 2 prep
@@ -565,8 +591,10 @@ dumb_20 <- usa_china_subset |>
 #                    #    , .name_repair = "check_unique"
 #                        )
 
+# I'm actually going to need to figure out a better way to join the data, because this next step causes the dataframe to get incredibly messy, has duplicates, and some colunms that are duplicated actually have different values, so I'll need to seriously dig in to how I can fix this....
 dumb_2 <- bind_cols(dumb_90, dumb_20) 
 
+# renaming and relocating some columns in the meantime for this assignment
 dumb_3 <- dumb_2 |> 
 #  rename_all(.funs = funs(sub("\\...*", "", names(dumb2))))
 #  rename_with(~str_replace(., "...*", ""))
@@ -596,7 +624,7 @@ dumb_3 <- dumb_2 |>
 #head(usa_china_dumb)
 ```
 
-#### Plot 2: Dumbell Plot
+#### Plot 2: Dumbbell Plot
 
 ```{r plot-2, fig.height=7, fig.width=8}
 
@@ -606,6 +634,7 @@ dumbbell_plot <- ggplot(data = dumb_3) +
   # drawing a line between the two emissions levels for each of these groups
   geom_segment(aes(x = emissions_1990, 
                    xend = emissions_2020,
+                   # reorder by the top emissions categories in 2020
                    y = fct_reorder(emission_source, emissions_2020),
                    yend = emission_source),
                size = 0.5, 
@@ -624,15 +653,39 @@ dumbbell_plot <- ggplot(data = dumb_3) +
   scale_x_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.001, # thousands
                                           suffix = "k")) +
+  
+  # updating emissions source labels
+  scale_y_discrete(labels=c("food_household_consumption" = "Food Household Consumption",
+                            "food_processing" = "Food Processing",
+                            "agfood_waste_disposal" = "Agrifood-system Waste Disposal",
+                            "food_retail" = "Food Retail",
+                            "food_packaging" = "Food Packaging",
+                            "fertilizers_manufacturing" = "Fertilizers Manufacturing",
+                            "on_farm_energy_use" = "On-Farm Energy Use",
+                            "rice_cultivation" = "Rice Cultivation",
+                            # I might take this one out because it seems redundant
+                            "on_farm_electricity_use" = "On-Farm Electricity Use",
+                            "manure_management" = "Manure Management",
+                            "food_transport" = "Food Transport",
+                            "manure_left_on_pasture" = "Manure Left On Pasture",
+                            # these values are wrong because of how I joined the data :(
+                            # so I'll need to sort that out this week
+                            "net_forest_conversion" = "Net Forest Conversion"
+                            )
+                   ) +
+  
+
   facet_wrap(~country,
              nrow = 2, # stack these vertically
              scales = "free_y") + # release these from groupings that aren't a part of these facet groups
   theme_bw() +
   labs(
-    title = "Agrifood CO2 Emissions Over Time in USA vs. China",
+    title = "Agri-food CO2 Emissions Over Time in USA vs. China",
+    # customizing colors in text (added element_markdown() in subtitle theme argument)
     subtitle = "Top Emissions Sources in <span style='color:#245501;'>**1990**</span> vs. <span style='color:#73a942;'>**2020**</span>",
     y = "",
-    x = "Agrifood CO2 Emissions (kt*)",
+    # not sure if I need to say agri-food here again?
+    x = "Agri-food CO2 Emissions (kt*)",
     caption = "*1 kiloton (kt) = 1000 kg"
     #   color = "Year"
   ) +
@@ -714,6 +767,9 @@ dumbbell_plot
 
 ```
 
+I used Coolors to pick these shades of green. I thought it made sense to have the older time set as a darker green, and the newer time as a lighter green, like how you can see new, light-green growth at the tips of evergreen trees while the rest of the branch's needles are a deeper, darker green. I'm not confident about how all of these colors will play together in the final infographic, though...
+
+I unfortunately haven't figured out how to change these labels on the y-axis in a better way than just hard-coding it/writing each one out manually, but I'm going to try to work that out over the weekend (Sunday). I figured out how to change the names of the facet-wrap labels in my next plot using `labeller()`, but that function is used within the `facet_wrap()` call, which is different from this situation, and also required manually entering all of the old_name = new_name style of labels.
 
 ## Plot 3: Food emissions vs. Rural Pop time series
 
@@ -752,7 +808,6 @@ food_emissions <- usa_china_pivot |>
   mutate(year = lubridate::ymd(year, truncated = 2L))
 
 ```
-
 
 ```{r plot-3, fig.width=8, fig.height=5.5}
 # creating labels for faceted plots
@@ -835,7 +890,11 @@ theme(
                             vjust = 1,
                             family = "Futura",
                             face = "bold",
-                            size = 18),
+                            size = 18,
+             # it took a lot of trial and error to get all of these margins set
+                            margin = margin(t = 0.3, r = 0, 
+                                            b = 0.2, l = 0,
+                                            unit = "lines")),
   
   # --------------- subtitle -------------------
   
@@ -843,7 +902,10 @@ theme(
                                face = "italic", 
                                size = 15,
                                vjust = 1,
-                               hjust = 0.45),
+                               hjust = 0.45,
+                               margin = margin(t = 0.2, r = 0, 
+                                                           b = 1.1, l = 0,
+                                                           unit = "lines")),
   
   # --------------- legend ----------------------
   legend.title = element_text(family = "Futura",
@@ -883,61 +945,55 @@ food_plot
 
 ```
 
-This plot honestly surprised me, because I expected food transport emissions to go up significantly in both countries as more of the population moved into cities, meaning that more food had to travel farther to get to the higher urban densities of each country's populations. 
-
-
-
+This plot honestly surprised me, because I expected food transport emissions to go up significantly in both countries as more of the population moved into cities, meaning that more food had to travel farther to get to the higher urban densities of each country's populations. I did also spend a long time trying to get the different elements to be laid out in a more aesthetically pleasing way, including changing the spacing of the panel elements (faceted plots). I've spaced them out in the x-direction, but not y-direction. I've been staring at all of this for so long that I'm not sure if it looks weird to have them not spaced out in the y-direction?? I needed to space them out horizontally to prevent the year (x-axis) labels on the Food Processing plot from overlapping onto the neighboring plots.
 
 ## Conclusion/Questions
 
 -   Answer the following questions:
 
-    -   What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
-    
-    I struggled a lot with my data. I repeatedly considered scrapping everything and switching to a new dataset, or trying to apply different machine learning models to this dataset and then making my visualizations about which models performed the best in terms of using different variables as predictors for total emissions in the future. I ended up sticking with the Agri-food CO2 emissions dataset, though I did also download ClimateTrace data and do some preliminary data wrangling and visualization with that data. 
-    
+    -   *What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?*
+
+    I struggled a lot with my data. I repeatedly considered scrapping everything and switching to a new dataset, or trying to apply different machine learning models to this dataset and then making my visualizations about which models performed the best in terms of using different variables as predictors for total emissions in the future. I ended up sticking with the Agri-food CO2 emissions dataset, though I did also download ClimateTrace data and do some preliminary data wrangling and visualization with that data.
+
     I also struggled with getting the subscript formatting to cooperate with the CO_2 (the 2 is supposed to be a subscript). I followed the example from class, but I couldn't get it to work, so hopefully I'll figure that out in the next few days.
-    
+
     I struggled to get the layout and formatting/placement of the axes labels where I wanted them for my patchwork of the two emissions plots I made for plot 1. I will continue to tinker with the margins settings and do some more research to see if there's anything I can do to get the labels where I want them to be.
-    
+
     I anticipate encountering many challenges as I stitch all of my plots together in one infographic.
 
-    -   What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
-    
-    I would appreciate seeing example code on how to get the ideal version of the dumbbell plot suggested at the end of lecture 4. I would also really appreciate getting some Sam Csik-approved example code for the advanced plot types that we went over in discussion, because the resources I've tried -- like Data to Viz -- have been outdated and I've struggled to get them to work following the tidyverse style guide and with the most updated versions of R and relevant packages. I think it would also be really useful to go over some examples of infographics in terms of breaking down the code, similar to what we did for the first homework, but an ideal, tidy, well-commented version that covers some basics like plot placement, formatting, etc. 
+    -   *What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?*
 
-    -   What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
-    
-    I'm not sure what I want to do for the final layout, or if there is another plot type or some kind of thematic element I can include to improve the overall impact of my visualizations, so any feedback or suggestions around that would be greatly appreciated. I also would like to get feedback from my peers to see if they would change anything, or what the overall picture of my plots is conveying to them. 
-    
+    I would appreciate seeing example code on how to get the ideal version of the dumbbell plot suggested at the end of lecture 4. I would also really appreciate getting some Sam Csik-approved example code for the advanced plot types that we went over in discussion, because the resources I've tried -- like Data to Viz -- have been outdated and I've struggled to get them to work following the tidyverse style guide and with the most updated versions of R and relevant packages. I think it would also be really useful to go over some examples of infographics in terms of breaking down the code, similar to what we did for the first homework, but an ideal, tidy, well-commented version that covers some basics like plot placement, formatting, etc.
 
-Feedback from discussion (Feb 21st): 
-- remove global average line
-- consider labeling countries on plot (ggtext or something similar)
+    -   *What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?*
 
+    I'm not sure what I want to do for the final layout, or if there is another plot type or some kind of thematic element I can include to improve the overall impact of my visualizations, so any feedback or suggestions around that would be greatly appreciated. I also would like to get feedback from my peers to see if they would change anything, or what the overall picture of my plots is conveying to them.
+
+Feedback from discussion (Feb 21st):
+
+-   remove global average line
+
+-   consider labeling countries on plot (ggtext or something similar)
+
+*End of HW 3*
 
 ## Plot X: Sankey (not static, so scrapped)
 
-Sankey thoughts: 
+Sankey thoughts:
 
-GROUPS & SUBGROUPS: 
+GROUPS & SUBGROUPS:
 
-AGRICULTURE: 
+AGRICULTURE:
 
 subgroups:
 
 Fires:
 
-`savanna_fires`,
-`forest_fires`,
-`fire_in_humid_tropical_forests`,
-`fires_in_organic_soils`
+`savanna_fires`, `forest_fires`, `fire_in_humid_tropical_forests`, `fires_in_organic_soils`
 
 Forests:
 
-`forestland` (sink / -),
-`net_forest_conversion`
-
+`forestland` (sink / -), `net_forest_conversion`
 
 Soils:
 
@@ -945,38 +1001,27 @@ Soils:
 
 On-farm emissions:
 
-`rice_cultivation`,
-`crop_residues`
+`rice_cultivation`, `crop_residues`
 
-`on_farm_energy_use` =
-`on_farm_electricity_use` + ?
+`on_farm_energy_use` = `on_farm_electricity_use` + ?
 
-`manure_management` = 
-`manure_applied_to_soils` + `manure_left_on_pasture` ?
+`manure_management` = `manure_applied_to_soils` + `manure_left_on_pasture` ?
 
 Agrichemical:
 
-`pesticides_manufacturing`,
-`fertilizers_manufacturing`
+`pesticides_manufacturing`, `fertilizers_manufacturing`
 
 FOOD:
 
-`food_household_consumption`,
-`food_packaging`,
-`food_transport`,
-`food_retail`,
-`food_processing`
+`food_household_consumption`, `food_packaging`, `food_transport`, `food_retail`, `food_processing`
 
-- other:
-`agrifood_systems_waste_disposal`
-`ippu` (the explanation for this variable in the dataset page on Kaggle / metadata is extremely limited, which is frustrating because this is such a big source)
+-   other: `agrifood_systems_waste_disposal` `ippu` (the explanation for this variable in the dataset page on Kaggle / metadata is extremely limited, which is frustrating because this is such a big source)
 
-Notes: 
+Notes:
 
-- ggpubr annotation_raster for having background images 
+-   ggpubr annotation_raster for having background images
 
-- library(networkD3) , sankeyNetwork package to make Sankey Diagram/Network
-
+-   library(networkD3) , sankeyNetwork package to make Sankey Diagram/Network
 
 ```{r sankey-prep}
 # making groups
@@ -1015,7 +1060,6 @@ sankey_subset_groups <- usa_2020_pivot |>
 
 ```
 
-
 ```{r sankey-df}
 # Library
 library(networkD3)
@@ -1050,5 +1094,4 @@ p
 
 ```
 
-Note: I'm not going to include this one in my final infographic, I just got excited about the idea of it and failed to realize that it was not in fact such a good idea.
-
+Note: I'm not going to include this one in my final infographic, I just got excited about the idea of it and failed to realize that it was not in fact such a good idea. It is interactive, which is fun but also not allowed in this assignment/project I think?
