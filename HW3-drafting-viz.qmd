@@ -250,7 +250,7 @@ pct_emissions <- function(df, value, total, new_column) {
 
 ```
 
-## Plot 1
+## Plot 1: Agri-food CO2 Emissions Comparison
 
 ```{r plot-1}
 # I'm struggling to get this to work 
@@ -500,139 +500,11 @@ usa_china_tot_emissions_plot / usa_china_per_cap_plot
 ```
 
 
-## Plot 2.1: Sankey (not static, so scrapped)
-
-Sankey thoughts: 
-
-GROUPS & SUBGROUPS: 
-
-AGRICULTURE: 
-
-subgroups:
-
-Fires:
-savanna_fires
-forest_fires
-fire_in_humid_tropical_forests
-fires_in_organic_soils
-
-Forests:
-forestland (sink / -)
-net_forest_conversion
-
-
-Soils:
-drained_organic_soils_co2
-
-On-farm emissions:
-rice_cultivation
-crop_residues
-
-on_farm_energy_use =
-on_farm_electricity_use + ?
-
-manure_management = 
-manure_applied_to_soils + manure_left_on_pasture
-
-Agrichemical:
-pesticides_manufacturing
-fertilizers_manufacturing
-
-FOOD:
-
-food_household_consumption
-food_packaging
-food_transport
-food_retail
-food_processing
-
-- other:
-agrifood_systems_waste_disposal
-ippu
-
-ggpubr annotation_raster
-
-```{r sankey-prep}
-# making groups
-
-# usa_sankey <- data.frame(
-#   source = 
-# )
-
-usa_2020_pivot <- usa_2020 |> 
-  select(-c(country, year, avg_temp_c, urban_pop, rural_pop,
-            total_population_female, total_population_male,
-            total_pop, emissions_per_capita, forestland)) |> 
-  mutate(other = (savanna_fires + forest_fires + net_forest_conversion +
-                    fires_in_organic_soils + fires_in_humid_tropical_forests +
-                    drained_organic_soils_co2 + agfood_waste_disposal +
-                    ippu)) |> 
-  mutate(food = (food_transport + food_retail + food_packaging +
-                   food_processing + food_household_consumption)) |> 
-  mutate(agriculture = pesticides_manufacturing + fertilizers_manufacturing +
-           on_farm_energy_use + manure_management + crop_residues + 
-           rice_cultivation) |> 
-  pivot_longer(cols = everything(),
-               names_to = "emission_source",
-               values_to = "emissions_kt"
-  ) |> 
-  mutate(total_emissions = 1023694.432) |> 
-  mutate(pct_emissions = ((emissions_kt / total_emissions) * 100))
-
-
-sankey_subset_groups <- usa_2020_pivot |> 
-  filter(emission_source %in% c("agriculture", "food", "other")) |> 
- # mutate(emission_source = as.factor(emission_source)) 
-  arrange(emission_source)
-#  ordered(emission_source, levels = c("agriculture", "food", "other", "total_emissions"))
-
-
-```
-
-
-```{r sankey-df}
-# Library
-library(networkD3)
-library(dplyr)
- 
-# A connection data frame is a list of flows with intensity for each flow
-sankey_df <- data.frame(
-#  source = c("agriculture", "food", "other"),
-  source = c(sankey_subset_groups$emission_source),
-  target = c("total_emissions"),
-  value = c(sankey_subset_groups$pct_emissions)
-)
-
-# From these flows we need to create a node data frame: it lists every entities involved in the flow
-nodes <- data.frame(
-  name=c(as.character(sankey_df$source), 
-  as.character(sankey_df$target)) |>  unique()
-)
-
-# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
-sankey_df$IDsource <- match(sankey_df$source, nodes$name)-1 
-sankey_df$IDtarget <- match(sankey_df$target, nodes$name)-1
- 
-# Make the Network
-p <- sankeyNetwork(Links = sankey_df, Nodes = nodes,
-              Source = "IDsource", Target = "IDtarget",
-              Value = "value", NodeID = "name", 
-              sinksRight=FALSE)
-
-p
-
-
-```
-
-Note: I'm not going to include this one in my final infographic, I just got excited about the idea of it and failed to realize that it was not in fact such a good idea.
 
 
 
-
-
-## Plot 2.2 (real plot # 2)
-
-Dumbbell plot of emissions by source in US, China (faceted)
+## Plot 2: Dumbbell plot 
+of emissions by source in US, China (faceted)
 
 ### Plot 2 prep
 
@@ -649,10 +521,17 @@ usa_china_subset <- usa_china_90_20 |>
             manure_applied_to_soils,
             crop_residues
             )) |> 
-  pivot_longer(cols = -c(country, year, rural_pop, urban_pop, total_population_male, total_population_female, total_pop, avg_temp_c, emissions_per_capita, total_emissions, ippu),
-               names_to = "emission_source",
-               values_to = "emissions_kt") |> 
+  # pivot all columns other than this specified list 
+  pivot_longer(cols = -c(country, year, rural_pop,
+                         urban_pop, total_population_male,
+                         total_population_female, total_pop,
+                         avg_temp_c, emissions_per_capita,
+                         total_emissions, ippu),
+               names_to = "emission_source", # new column name for types
+               values_to = "emissions_kt") |>  # new column name for values
+  # relocate for easier quick-reading 
   relocate(c(emission_source, emissions_kt), .after = year) |> 
+  # make 'year' a factor (I end up making it a date for plot 3)
   mutate(year = as.factor(year)) |> 
   group_by(country, year)
 
@@ -681,9 +560,10 @@ dumb_20 <- usa_china_subset |>
 
 
 # dumbbell, not dumb!
-dumb_data <- full_join(dumb_90, dumb_20
-                   #    , .name_repair = "check_unique"
-                       )
+# this didn't work... kept getting improperly joined/improperly pivoted columns, such that all rows where 1990 emissions ahd values, 2020 emissions had NA values
+# dumb_data <- full_join(dumb_90, dumb_20
+#                    #    , .name_repair = "check_unique"
+#                        )
 
 dumb_2 <- bind_cols(dumb_90, dumb_20) 
 
@@ -695,7 +575,7 @@ dumb_3 <- dumb_2 |>
          total_pop = total_pop...10) |> 
   relocate(c(emissions_1990, emissions_2020), .after = emission_source)
 
-# Dumbbell plot
+# I tried another way of joining the data here, but ultimately couldn't get it to work and was hard-coding what pivot-wider is already supposed to do 
 
 # create year subsets to plot
 # usa_china_dumb <- usa_china_subset |> 
@@ -722,26 +602,25 @@ dumb_3 <- dumb_2 |>
 
 
 # cols <- c("1990" = "#1a4301", "2020" = "#538d22")
-
-ggplot(data = dumb_3) +
+dumbbell_plot <- ggplot(data = dumb_3) +
   # drawing a line between the two emissions levels for each of these groups
-geom_segment(aes(x = emissions_1990, 
+  geom_segment(aes(x = emissions_1990, 
                    xend = emissions_2020,
                    y = fct_reorder(emission_source, emissions_2020),
                    yend = emission_source),
-             size = 0.5, 
-             alpha = 0.5) +
+               size = 0.5, 
+               alpha = 0.5) +
   geom_point(aes(x = emissions_1990,
                  y = emission_source),
-                 color = "#245501",
+             color = "#245501",
              size = 2,
              alpha = 0.9) +
-   geom_point(aes(x = emissions_2020,
+  geom_point(aes(x = emissions_2020,
                  y = emission_source),
-                 color = c("#73a942"),
-              size = 2,
-              alpha = 0.9) +
-    # rescaling x-axis to be more legible (than 2e+05, for example)
+             color = c("#73a942"),
+             size = 2,
+             alpha = 0.9) +
+  # rescaling x-axis to be more legible (than 2e+05, for example)
   scale_x_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.001, # thousands
                                           suffix = "k")) +
@@ -755,9 +634,9 @@ geom_segment(aes(x = emissions_1990,
     y = "",
     x = "Agrifood CO2 Emissions (kt*)",
     caption = "*1 kiloton (kt) = 1000 kg"
- #   color = "Year"
+    #   color = "Year"
   ) +
-    # ================== Theme ===============================
+  # ================== Theme ===============================
 theme(
   # removing most gridlines 
   panel.grid.minor.x = element_blank(),
@@ -794,13 +673,13 @@ theme(
   #                              hjust = 0.45),
   
   plot.subtitle = ggtext::element_markdown(family = "Futura",
-                               face = "italic", 
-                               size = 15,
-                               vjust = 1,
-                               hjust = 0.5,
-                               margin = margin(t = 0.2, r = 0, 
-                                            b = 1.1, l = 0,
-                                            unit = "lines")),
+                                           face = "italic", 
+                                           size = 15,
+                                           vjust = 1,
+                                           hjust = 0.5,
+                                           margin = margin(t = 0.2, r = 0, 
+                                                           b = 1.1, l = 0,
+                                                           unit = "lines")),
   
   # --------------- x-axis ---------------------
   axis.title.x = element_text(vjust = -1,
@@ -808,14 +687,14 @@ theme(
                               face = "bold",
                               size = 12,
                               margin = margin(t = 0.7, r = 0, 
-                                            b = 1, l = 0,
-                                            unit = "lines")),
+                                              b = 1, l = 0,
+                                              unit = "lines")),
   axis.text.x = element_text(vjust = 0.9,
                              family = "Futura"),
   
   # --------------- y-axis ----------------------
   axis.title.y = element_text(family = "Futura",
-                          #    vjust = 2,
+                              #    vjust = 2,
                               face = "bold",
                               size = 12),
   axis.text.y = element_text(family = "Futura"),
@@ -827,16 +706,11 @@ theme(
                               margin = margin(t = 2, b = 0.8,
                                               l = 0, r = 0.5,
                                               unit = "lines"))
-
-)
-    
   
+)
 
 
-
-# plot +
-#   labs(subtitle = "Some subtitle text where <span style='color:red;'>**these words**</span> are bolded and red") +
-#   theme(plot.subtitle = ggtext::element_markdown())
+dumbbell_plot
 
 ```
 
@@ -1003,34 +877,178 @@ theme(
   
 )
 
+# view plot 
+
 food_plot
 
 ```
 
+This plot honestly surprised me, because I expected food transport emissions to go up significantly in both countries as more of the population moved into cities, meaning that more food had to travel farther to get to the higher urban densities of each country's populations. 
 
 
 
 
-
+## Conclusion/Questions
 
 -   Answer the following questions:
 
     -   What challenges did you encounter or anticipate encountering as you continue to build / iterate on your visualizations in R?
     
+    I struggled a lot with my data. I repeatedly considered scrapping everything and switching to a new dataset, or trying to apply different machine learning models to this dataset and then making my visualizations about which models performed the best in terms of using different variables as predictors for total emissions in the future. I ended up sticking with the Agri-food CO2 emissions dataset, though I did also download ClimateTrace data and do some preliminary data wrangling and visualization with that data. 
     
+    I also struggled with getting the subscript formatting to cooperate with the CO_2 (the 2 is supposed to be a subscript). I followed the example from class, but I couldn't get it to work, so hopefully I'll figure that out in the next few days.
+    
+    I struggled to get the layout and formatting/placement of the axes labels where I wanted them for my patchwork of the two emissions plots I made for plot 1. I will continue to tinker with the margins settings and do some more research to see if there's anything I can do to get the labels where I want them to be.
+    
+    I anticipate encountering many challenges as I stitch all of my plots together in one infographic.
 
     -   What ggplot extension tools / packages do you need to use to build your visualizations? Are there any that we haven’t covered in class that you’ll be learning how to use for your visualizations?
     
-    
+    I would appreciate seeing example code on how to get the ideal version of the dumbbell plot suggested at the end of lecture 4. I would also really appreciate getting some Sam Csik-approved example code for the advanced plot types that we went over in discussion, because the resources I've tried -- like Data to Viz -- have been outdated and I've struggled to get them to work following the tidyverse style guide and with the most updated versions of R and relevant packages. I think it would also be really useful to go over some examples of infographics in terms of breaking down the code, similar to what we did for the first homework, but an ideal, tidy, well-commented version that covers some basics like plot placement, formatting, etc. 
 
     -   What feedback do you need from the instructional team and / or your peers to ensure that your intended message is clear?
     
+    I'm not sure what I want to do for the final layout, or if there is another plot type or some kind of thematic element I can include to improve the overall impact of my visualizations, so any feedback or suggestions around that would be greatly appreciated. I also would like to get feedback from my peers to see if they would change anything, or what the overall picture of my plots is conveying to them. 
     
-    
-
-library(networkD3) , sankeyNetwork package to make Sankey Diagram/Network
-
 
 Feedback from discussion (Feb 21st): 
 - remove global average line
-- label countries on plot (ggtext or something similar)
+- consider labeling countries on plot (ggtext or something similar)
+
+
+## Plot X: Sankey (not static, so scrapped)
+
+Sankey thoughts: 
+
+GROUPS & SUBGROUPS: 
+
+AGRICULTURE: 
+
+subgroups:
+
+Fires:
+
+`savanna_fires`,
+`forest_fires`,
+`fire_in_humid_tropical_forests`,
+`fires_in_organic_soils`
+
+Forests:
+
+`forestland` (sink / -),
+`net_forest_conversion`
+
+
+Soils:
+
+`drained_organic_soils_co2`
+
+On-farm emissions:
+
+`rice_cultivation`,
+`crop_residues`
+
+`on_farm_energy_use` =
+`on_farm_electricity_use` + ?
+
+`manure_management` = 
+`manure_applied_to_soils` + `manure_left_on_pasture` ?
+
+Agrichemical:
+
+`pesticides_manufacturing`,
+`fertilizers_manufacturing`
+
+FOOD:
+
+`food_household_consumption`,
+`food_packaging`,
+`food_transport`,
+`food_retail`,
+`food_processing`
+
+- other:
+`agrifood_systems_waste_disposal`
+`ippu` (the explanation for this variable in the dataset page on Kaggle / metadata is extremely limited, which is frustrating because this is such a big source)
+
+Notes: 
+
+- ggpubr annotation_raster for having background images 
+
+- library(networkD3) , sankeyNetwork package to make Sankey Diagram/Network
+
+
+```{r sankey-prep}
+# making groups
+
+# usa_sankey <- data.frame(
+#   source = 
+# )
+
+usa_2020_pivot <- usa_2020 |> 
+  select(-c(country, year, avg_temp_c, urban_pop, rural_pop,
+            total_population_female, total_population_male,
+            total_pop, emissions_per_capita, forestland)) |> 
+  mutate(other = (savanna_fires + forest_fires + net_forest_conversion +
+                    fires_in_organic_soils + fires_in_humid_tropical_forests +
+                    drained_organic_soils_co2 + agfood_waste_disposal +
+                    ippu)) |> 
+  mutate(food = (food_transport + food_retail + food_packaging +
+                   food_processing + food_household_consumption)) |> 
+  mutate(agriculture = pesticides_manufacturing + fertilizers_manufacturing +
+           on_farm_energy_use + manure_management + crop_residues + 
+           rice_cultivation) |> 
+  pivot_longer(cols = everything(),
+               names_to = "emission_source",
+               values_to = "emissions_kt"
+  ) |> 
+  mutate(total_emissions = 1023694.432) |> 
+  mutate(pct_emissions = ((emissions_kt / total_emissions) * 100))
+
+
+sankey_subset_groups <- usa_2020_pivot |> 
+  filter(emission_source %in% c("agriculture", "food", "other")) |> 
+ # mutate(emission_source = as.factor(emission_source)) 
+  arrange(emission_source)
+#  ordered(emission_source, levels = c("agriculture", "food", "other", "total_emissions"))
+
+
+```
+
+
+```{r sankey-df}
+# Library
+library(networkD3)
+library(dplyr)
+ 
+# A connection data frame is a list of flows with intensity for each flow
+sankey_df <- data.frame(
+#  source = c("agriculture", "food", "other"),
+  source = c(sankey_subset_groups$emission_source),
+  target = c("total_emissions"),
+  value = c(sankey_subset_groups$pct_emissions)
+)
+
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes <- data.frame(
+  name=c(as.character(sankey_df$source), 
+  as.character(sankey_df$target)) |>  unique()
+)
+
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+sankey_df$IDsource <- match(sankey_df$source, nodes$name)-1 
+sankey_df$IDtarget <- match(sankey_df$target, nodes$name)-1
+ 
+# Make the Network
+p <- sankeyNetwork(Links = sankey_df, Nodes = nodes,
+              Source = "IDsource", Target = "IDtarget",
+              Value = "value", NodeID = "name", 
+              sinksRight=FALSE)
+
+p
+
+
+```
+
+Note: I'm not going to include this one in my final infographic, I just got excited about the idea of it and failed to realize that it was not in fact such a good idea.
+
