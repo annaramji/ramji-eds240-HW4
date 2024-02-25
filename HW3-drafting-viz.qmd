@@ -261,94 +261,151 @@ usa_china_tot_emissions_plot <- ggplot() +
   #               y = avg_emissions,
   #               color = country,
   #               linetype = country),
-      #      linetype = "longdash",
- #           linewidth = 0.5) +
+  #      linetype = "longdash",
+  #           linewidth = 0.5) +
   
   # rescaling y-axis to be more legible (than 2e+06, for example)
   scale_y_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.000001, # millions
                                           suffix = "M")) +
   scale_color_manual(values = c("red",
-                             #   "darkcyan",
+                                #   "darkcyan",
                                 "mediumblue")) +
-#   scale_color_viridis_d() + 
-  # updating labels, titles, theme
-  labs(x = "Year", 
-       y = "Agri-food CO2 emissions (kilotons)",
-       title = "Total agri-food CO2 emissions ",
-       subtitle = "in the USA and China (1990-2020)",
-       caption = "1 kiloton (kt) = 1000 kg",
-       color = "Country",
-       linetype = "Country") +
+  
+  # ---------- updating labels, fit for patchwork ------------
+labs(
+  x = "", # removed for patchwork
+  y = "Agri-food CO2 emissions (kt)*",
+  title = "Agri-food CO2 emissions in USA and China (1990-2020)",
+  subtitle = "Total Emissions", # for patchwork
+  #       caption = "*1 kiloton (kt) = 1000 kg",
+  color = "Country",
+  linetype = "Country") +
+  
   theme_bw() +
-  theme(panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        plot.title.position = "plot",
-        plot.title = element_text(hjust = 0.45,
-                                  vjust = 1,
-                                  family = "Futura",
-                                  face = "bold",
-                                  size = 16),
-        plot.subtitle = element_text(family = "Futura",
-                                     face = "plain", 
-                                     size = 14,
-                                     vjust = 1,
-                                     hjust = 0.45),
-        legend.box.margin =  margin(l = 0.5, unit = "cm"),
-        legend.title = element_text(family = "Futura",
-                                    face = "plain",
-                                    size = 11),
-   #     legend.title.align = 0.5,
-        legend.text = element_text(family = "Futura",
-                                   size = 10),
-        # axis.text.x = element_text(angle = 45,
-        #                            vjust = 0.75,
-        #                            hjust = 0.9),
-        axis.title.x = element_text(vjust = -0.5,
-                                    family = "Futura"), 
-        axis.text.x = element_text(family = "Futura"),
-        axis.title.y = element_text(family = "Futura",
-                                    vjust = 2),
-        axis.text.y = element_text(family = "Futura"),
-        plot.caption = element_text(family = "Futura"))
+  
+  # ================== Theme ===================================
+theme(
+  # removing most gridlines 
+  panel.grid.minor.x = element_blank(),
+  panel.grid.major.x = element_blank(),
+  panel.grid.minor.y = element_blank(),
+  # lighter line color to emphasize trend over time
+  panel.grid.major.y = element_line(color = "whitesmoke"),
+  
+  # increasing spacing between plots
+  panel.spacing.x = unit(1.5, "lines"),
+  # removing background color of faceted plot labels
+  strip.background = element_rect(fill = "transparent"),
+  
+  # adjusting legend position to sit within the plot 
+  # legend.position = c(0.8, 0.2),
+  
+  # adjusting text elements of different plot components
+  strip.text = element_text(family = "Futura", size = 10),
+  
+  # ---------------- title ---------------------
+  plot.title.position = "plot",
+  plot.title = element_text(hjust = 0.45,
+                            vjust = 1,
+                            family = "Futura",
+                            face = "bold",
+                            size = 18,
+                            margin = margin(t = 1, r = 0.5, 
+                                            b = 1.2, l = 0.5,
+                                            unit = "lines")),
+  
+  # --------------- subtitle -------------------
+  
+  plot.subtitle = element_text(family = "Futura",
+                               face = "bold", 
+                               size = 16,
+                               vjust = 1,
+                               hjust = 0.45,
+                               margin = margin(t = 0.2, r = 0, 
+                                               b = 1, l = 0,
+                                               unit = "lines")),
+  
+  # --------------- legend ----------------------
+  legend.title = element_text(family = "Futura",
+                              face = "bold",
+                              size = 11),
+  #  legend.title.align = 0.5,
+  legend.text = element_text(family = "Futura",
+                             size = 11),
+  
+  # --------------- x-axis ---------------------
+  axis.title.x = element_text(vjust = -1,
+                              family = "Futura",
+                              face = "bold",
+                              size = 12),
+  axis.text.x = element_text(
+    hjust = 0.9,
+    vjust = 0.9,
+    family = "Futura"),
+  
+  # --------------- y-axis ----------------------
+  axis.title.y = element_text(family = "Futura",
+                              vjust = 2,
+                              face = "bold",
+                              size = 12,
+                              # customize title margins 
+                              margin = margin(t = 15, r = 1, 
+                                              b = 0, l = 0.5,
+                                              unit = "lines")),
+  axis.text.y = element_text(family = "Futura"))
 
-usa_china_tot_emissions_plot
+# ------------- caption -----------------------
+# omitted for patchwork fit 
+#   plot.caption.position = "plot",
+#   plot.caption = element_text(family = "Futura",
+#                               hjust = 0.9,
+#                               size = 10,
+#                               margin = margin(t = 3, b = 0.5,
+#                                               l = 0, r = 0.2,
+#                                               unit = "lines"))
+# )
 
 
-#usa_china_per_cap_plot <- 
-ggplot() +
+# usa_china_tot_emissions_plot
+
+
+# ================ PER CAPITA PLOT =====================================
+usa_china_per_cap_plot <- ggplot() +
   geom_line(data = usa_china,
             aes(x = year,
                 y = emissions_per_capita,
                 color = country,
                 linetype = country)) +
   
+  # removed because it skews the y-scale too much 
   # adding global average line
-  geom_line(data = all_avg_emissions,
-            aes(x = year,
-                y = avg_per_cap_emissions,
-                color = country,
-                linetype = country),
-            linetype = "longdash",
-            linewidth = 0.5) +
+  #   geom_line(data = all_avg_emissions,
+  #             aes(x = year,
+  #                 y = avg_per_cap_emissions,
+  #                 color = country,
+  #                 linetype = country),
+  # #            linetype = "longdash",
+  #             linewidth = 0.5) +
   
-  # rescaling y-axis to be more legible (than 2e+06, for example)
-  # scale_y_continuous(label = label_number(accuracy = 1, 
-  #                                         scale = 0.000001, # millions
-  #                                         suffix = "M")) +
-  # scale_color_manual(values = c("red",
-  #                               "darkcyan",
-  #                               "mediumblue")) +
-  # 
-  # updating labels, titles, theme
+
+scale_color_manual(values = c("red",
+                              # "darkcyan",
+                              "mediumblue")) +
+  
+  # ------ updating labels, fit for patchwork ----------
   labs(x = "Year", 
-       y = "Agri-food CO2 Emissions (kt*)",
-       title = "Agri-food CO2 emissions Per Capita",
-       subtitle = "in the USA and China (1990-2020)",
-       caption = "*1 kiloton (kt) = 1000 kg",
-       color = "Country",
-       linetype = "Country") +
+       y = "", # remove label for patchwork
+       # customized for patchwork
+       #       title = "Agri-food CO2 emissions Per Capita",
+       #       subtitle = "in the USA and China (1990-2020)",
+       subtitle = "Emissions Per Capita",
+       caption = "*1 kiloton (kt) = 1000 kg \n \n Global Average Emissions Per Capita = 0.2 kt",
+       color = "", # remove label for patchwork
+       linetype = "" # remove label for patchwork
+       ) +
+  guides(legend = "none") +
+  
   theme_bw() +
   
   # ================== Theme ===============================
@@ -366,59 +423,72 @@ theme(
   strip.background = element_rect(fill = "transparent"),
   
   # adjusting legend position to sit within the plot 
-  legend.position = c(0.8, 0.2),
+ # legend.position = c(0.8, 0.2),
   
   # adjusting text elements of different plot components
   strip.text = element_text(family = "Futura", size = 10),
   
   # ---------------- title ---------------------
-  plot.title.position = "plot",
-  plot.title = element_text(hjust = 0.45,
-                            vjust = 1,
-                            family = "Futura",
-                            face = "bold",
-                            size = 18),
+ # omitted for patchwork
+  # plot.title.position = "plot",
+  # plot.title = element_text(hjust = 0.45,
+  #                           vjust = 1,
+  #                           family = "Futura",
+  #                           face = "bold",
+  #                           size = 18),
   
   # --------------- subtitle -------------------
   
   plot.subtitle = element_text(family = "Futura",
-                               face = "italic", 
-                               size = 15,
+                               face = "bold", 
+                               size = 16,
                                vjust = 1,
                                hjust = 0.45),
   
   # --------------- legend ----------------------
-  legend.title = element_text(family = "Futura",
-                              face = "bold",
-                              size = 11),
-  legend.title.align = 0.5,
-  legend.text = element_text(family = "Futura",
-                             size = 11),
+  # removed for patchwork 
+ legend.position = "none", 
+#   legend.title = element_text(family = "Futura",
+#                               face = "bold",
+#                               size = 11),
+# #  legend.title.align = 0.5,
+#   legend.text = element_text(family = "Futura",
+#                              size = 11),
   
   # --------------- x-axis ---------------------
   axis.title.x = element_text(vjust = -1,
                               family = "Futura",
                               face = "bold",
                               size = 12),
-  axis.text.x = element_text(angle = 40,
+  axis.text.x = element_text(
                              hjust = 0.9,
                              vjust = 0.9,
                              family = "Futura"),
   
   # --------------- y-axis ----------------------
-  axis.title.y = element_text(family = "Futura",
-                              vjust = 2,
-                              face = "bold",
-                              size = 12),
-  axis.text.y = element_text(family = "Futura"),
+# removed for patchwork
+  # axis.title.y = element_text(family = "Futura",
+  #                             vjust = 2,
+  #                             face = "bold",
+  #                             size = 12,
+  #                             # customize title margins 
+  #                             margin = margin(t = 0, r = 1, 
+  #                                           b = 0, l = 0.5,
+  #                                           unit = "lines")),
+  # axis.text.y = element_text(family = "Futura"),
   
   # ------------- caption -----------------------
+  plot.caption.position = "plot",
   plot.caption = element_text(family = "Futura",
-                              hjust = 0.9,
-                              size = 10)
+                              hjust = 1.3,
+                              size = 10,
+                              margin = margin(t = 3, b = 0.5,
+                                              l = 0, r = 0.2,
+                                              unit = "lines"))
 )
+# usa_china_per_cap_plot
 
-usa_china_per_cap_plot
+usa_china_tot_emissions_plot / usa_china_per_cap_plot
 ```
 
 
