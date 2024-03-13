@@ -1,0 +1,124 @@
+---
+author: "Anna Ramji"
+date: 2024-02-22
+---
+
+Using ML on the Agrifood CO2 dataset to see which variables are best for predicting future emissions of a country
+
+
+
+```{r setup}
+library(tidyverse) # following tidy style guide
+library(here) # file path reproducibility
+
+# general ML in R
+library(tidymodels)
+library(parsnip)
+library(caret)
+
+library(rpart.plot) # for decision trees
+library(xgboost) #package for boosted trees
+library(baguette)
+library(ranger) #package for random forest
+library(vip) #variable importance
+library(stats)
+
+# aesthetics
+library(patchwork) # combined plots
+library(gt) # for nicer table outputs
+library(viridis) # DEI lens: color-impaired
+
+set.seed(123)
+
+
+```
+
+
+Reading in the data, wrangling
+```{r data}
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                                import data                               ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+agrifood_emissions <- read_csv(here("data", "Agrofood_co2_emission.csv"))
+
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##                          data cleaning & wrangling                       ----
+##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+# the column names are not tidy, so I'll start out by renaming them to lower_snake_case()
+ag_clean_names <- agrifood_emissions |> 
+  janitor::clean_names() 
+
+ag_clean <- ag_clean_names |> 
+  # and then rename them to more easily referable titles 
+  rename(country = area, 
+         avg_temp_c = average_temperature_c,
+         # plurals are always so tricky to keep track of, but "emissions" feels more natural than "emission"
+         total_emissions = total_emission, 
+         urban_pop = urban_population,
+         rural_pop = rural_population,
+         agfood_waste_disposal = agrifood_systems_waste_disposal)  |> 
+  # adding a total population column
+  mutate(total_pop = (total_population_male + total_population_female)) |> 
+  # making a proportion column to theoretically compare/standardize emissions per capita
+  mutate(emissions_per_capita = (total_emissions / total_pop)) |> 
+  
+  # setting country to a factor for modeling
+  mutate(country = as.factor(country)) # 236 countries
+
+
+
+```
+
+
+```{r knn}
+# pseudo-random for reproducibility
+set.seed(123)
+
+# --------------- Preprocessing ---------------------
+# I already classified the "collection" column to be factored earlier
+# and stored this cleaned, selected df as combined_audio_clean
+
+# split into testing and training sets
+split <- initial_split(ag_clean, 0.75) # default 75:25 split
+train <- training(split) # 5223 obs of 33 vars
+test <- testing(split) # 1742 obs of 33 vars
+
+
+# ------------ recipe, model, workflow -------------------------
+recipe <- recipe(total_emissions ~ ., # outcome variable is whose collection the song is in
+                  data = train) |> 
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) |>  
+  step_integer(all_numeric_predictors(),
+               zero_based = TRUE) |> 
+  step_zv() |> 
+  step_normalize(all_numeric_predictors()) |>  # scale and center numeric predictors
+  prep()
+# note: 1807 incomplete rows
+
+knn_model <- nearest_neighbor(neighbors = tune()) |> 
+  # specify model again, rather than telling it we want to use 5 neighbors, telling it we're going to tune the model to get the best value of that parameter (nn)
+  set_mode("regression") |> 
+  set_engine("kknn") # underlying function 
+
+
+knn_workflow <- workflow() |>  # create workflow
+  add_model(knn_model) |> 
+  add_recipe(recipe)
+
+# --------------- Resampling ---------------------
+
+cv_folds <- vfold_cv(train, v = 10)
+
+# --------------- Tuning ------------------------------
+
+knn_cv_tune <- knn_workflow |> 
+  tune_grid(resamples = cv_folds,
+            grid = data.frame(neighbors = c(1, 5, seq(10, 100, 10)))) 
+
+
+
+```
+
