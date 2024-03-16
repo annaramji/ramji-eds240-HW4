@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library("knitr")
 library("tidyverse") # for tidy everything! (data cleaning, wrangling)
 library("here") # for reproducible file paths
-library(showtext) 
+library("showtext") 
 
 # import fonts
 font_add_google(name = "Playfair Display", family = "playfair")
@@ -64,24 +64,17 @@ agrifood_emissions <- read_csv(here("data", "Agrofood_co2_emission.csv"))
 
 # the column names are not tidy, so I'll start out by renaming them to lower_snake_case()
 ag_clean_names <- agrifood_emissions |> 
-  janitor::clean_names() 
+  janitor::clean_names() # the column names are not tidy, so I'll start out by renaming them to lower_snake_case()
 
+# tidy data
 ag_clean <- ag_clean_names |> 
-  # the column names are quite long, though informative, so I'll first select the columns/variables I'm most interested in...
-  # select(area, year, total_emission, average_temperature_c, urban_population, rural_population, rice_cultivation, crop_residues, pesticides_manufacturing, food_transport, on_farm_energy_use, manure_management, manure_left_on_pasture, manure_applied_to_soils, agrifood_systems_waste_disposal, forestland, food_household_consumption, food_retail, food_packaging, savanna_fires, forest_fires, net_forest_conversion, drained_organic_soils_co2, total_population_male, total_population_female) |> 
-  
-  # and then rename them to more easily referable titles 
+  # the column names are quite long, though informative, so I'll rename a few of them to more easily referable titles 
   rename(country = area, 
          avg_temp_c = average_temperature_c,
          total_emissions = total_emission, # plurals are always so tricky to keep track of, but "emissions" feels more natural than "emission"
          urban_pop = urban_population,
          rural_pop = rural_population,
-#         pesticide_manuf = pesticides_manufacturing,
-         agfood_waste_disposal = agrifood_systems_waste_disposal,
-#         f_hh_consumption = food_household_consumption,
-#         net_forest_conv = net_forest_conversion,
-  #       food_pack = food_packaging
-)  |> 
+         agfood_waste_disposal = agrifood_systems_waste_disposal) |> 
   # adding a total population column
   mutate(total_pop = (total_population_male + total_population_female)) |> 
   # making a proportion column to theoretically compare/standardize emissions per capita
@@ -606,7 +599,7 @@ head(usa_china_dumb)
 ### Plot 2: Dumbbell Plot
 
 ```{r plot-2, fig.height=7, fig.width=8}
-
+lollipop_x_lab <-  glue::glue("Agri-food CO<sub>2</sub> emissions (kt)")
 
 # cols <- c("1990" = "#1a4301", "2020" = "#538d22")
 dumbbell_plot <- ggplot(data = dumb_3) +
@@ -666,7 +659,7 @@ dumbbell_plot <- ggplot(data = dumb_3) +
     title = "Top Agri-food Emissions Sources in <span style='color:#245501;'>**1990**</span> vs. <span style='color:#73a942;'>**2020**</span>",
     y = "",
     # not sure if I need to say agri-food here again?
-    x = "Agri-food CO2 Emissions (kt)" # ,
+    x = lollipop_x_lab # ,
     # removed for infographic
    # caption = "*1 kiloton (kt) = 1000 kg"
     #   color = "Year"
@@ -718,7 +711,7 @@ theme(
   #                                                          unit = "lines")),
   
   # --------------- x-axis ---------------------
-  axis.title.x = element_text(vjust = -1,
+  axis.title.x = element_markdown(vjust = -1,
                               hjust = 0.5,
                               family = "playfair",
                               face = "plain",
@@ -833,7 +826,7 @@ food_plot <- ggplot(data = food_emissions,
                     aes(x = year,
                         y = emissions_kt)) +
   geom_point(aes(color = country),
-             alpha = 0.8) +
+             alpha = 0.9) +
   # rescaling y-axis to be more legible (than 2e+06, for example)
   scale_y_continuous(label = label_number(accuracy = 1, 
                                           scale = 0.001, # thousands
@@ -846,7 +839,7 @@ food_plot <- ggplot(data = food_emissions,
               show.legend = FALSE,
               se = FALSE,
               lwd = 0.7,
-              alpha = 0.5) +
+              alpha = 0.3) +
   
   # facet wrapping by source type
   facet_wrap(~emission_source,
@@ -856,7 +849,7 @@ food_plot <- ggplot(data = food_emissions,
   # -------- setting labels ----------------------------------
 labs(
   title = food_title,
-  subtitle = "in China (mainland) vs. United States of America (USA)",
+  subtitle = "in China (mainland) vs. United States of America (USA) from 1990-2020",
   color = "Country",
   x = "Year",
   y = y_ax_label,
@@ -884,13 +877,13 @@ theme(
   legend.position = c(0.8, 0.2),
   
   # adjusting text elements of different plot components
-  strip.text = element_text(family = "Futura", size = 10),
+  strip.text = element_text(family = "playfair", size = 10),
   
   # ---------------- title ---------------------
   plot.title.position = "plot",
   plot.title = ggtext::element_markdown(hjust = 0.45,
                             vjust = 1,
-                            family = "Futura",
+                            family = "playfair",
                             face = "bold",
                             size = 18,
              # it took a lot of trial and error to get all of these margins set
@@ -900,42 +893,44 @@ theme(
   
   # --------------- subtitle -------------------
   
-  plot.subtitle = element_text(family = "Futura",
-                               face = "italic", 
-                               size = 15,
+  plot.subtitle = element_text(family = "raleway",
+                               face = "plain", 
+                               size = 14,
                                vjust = 1,
                                hjust = 0.45,
-                               margin = margin(t = 0.2, r = 0, 
-                                                           b = 1.1, l = 0,
+                               margin = margin(t = 0.5, r = 0, 
+                                                           b = 2, l = 0,
                                                            unit = "lines")),
   
   # --------------- legend ----------------------
-  legend.title = element_text(family = "Futura",
+  legend.title = element_text(family = "playfair",
                               face = "bold",
                               size = 11),
   legend.title.align = 0.5,
-  legend.text = element_text(family = "Futura",
+  legend.text = element_text(family = "raleway",
                              size = 11),
   
   # --------------- x-axis ---------------------
   axis.title.x = element_text(vjust = -1,
-                              family = "Futura",
+                              family = "playfair",
                               face = "bold",
-                              size = 12),
+                              size = 12,
+                              margin = margin(t = 0.8, b = 0.8, unit = "lines")),
   axis.text.x = element_text(angle = 40,
                              hjust = 0.9,
                              vjust = 0.9,
-                             family = "Futura"),
+                             family = "raleway"),
   
   # --------------- y-axis ----------------------
-  axis.title.y = ggtext::element_markdown(family = "Futura",
+  axis.title.y = ggtext::element_markdown(family = "playfair",
                               vjust = 2,
                               face = "bold",
-                              size = 12),
-  axis.text.y = element_text(family = "Futura"),
+                              size = 12,
+                              margin = margin(r = 0.8, unit = "lines")),
+  axis.text.y = element_text(family = "raleway"),
   
   # ------------- caption -----------------------
-  plot.caption = element_text(family = "Futura",
+  plot.caption = element_text(family = "raleway",
                               hjust = 1,
                               size = 10)
   
